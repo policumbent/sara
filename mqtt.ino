@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <stdio.h>
 #include <Wire.h>
 #include <Adafruit_BME280.h>
@@ -12,6 +13,10 @@ Adafruit_BME280 bme; // I2C
 const char* ssid = "Home Cornaglia"; //Redmi
 const char* password = "homecornaglia_toaldo2019";// riky2001
 
+// username e password server mqtt
+const char* username = "stefano";
+const char* mqtt_password = "martafaschifo!";
+
 // MQTT server nel lab del poli:
 const char* mqtt_server = "130.192.38.75";
 
@@ -20,7 +25,7 @@ const int led = 2;
 int status = 0;
 unsigned long delayTime;
 
-WiFiClient espClient;
+WiFiClientSecure espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
@@ -38,13 +43,17 @@ void setup() {
   pinMode(D18, INPUT); //SCL
 */
   Serial.begin(115200);
+  
+  // per ora salto la verifica del certificato
+  espClient.setInsecure(); 
+
   // default settings
   // (you can also pass in a Wire library object like &Wire2)
   //status = bme.begin(); 
   
   setup_wifi();
   setup_sensoreTempUm();
-  client.setServer(mqtt_server, 1883);
+  client.setServer(mqtt_server, 8883);
   client.setCallback(callback);
 
     
