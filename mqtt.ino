@@ -1,4 +1,4 @@
-#include <WiFi.h>
+
 #include <WiFiClientSecure.h>
 #include <stdio.h>
 #include <Wire.h>
@@ -24,6 +24,14 @@ const char* mqtt_server = "130.192.38.75";
 const int led = 2;
 int status = 0;
 unsigned long delayTime;
+
+int anemometer = 34;
+int val = 0;
+float voltage = 0.0;
+float analog_to_volt_conv = 0.00122070312; //converte il valore che legge il pin analogico in un voltaggio. 5V in range di 4096 valori
+
+float vmin = 0.4, vmax = 2.0;
+float min_speed = 0.0, max_speed = 32.4;
 
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
@@ -134,7 +142,7 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("ESP8266Client")) {
+    if (client.connect("ESP8266Client", username, mqtt_password)){
       Serial.println("connected");
       // Subscribe
       // client.subscribe("test/led");
@@ -155,8 +163,23 @@ void getBME280Data(float *temp, float *pres, float *hum){
 }
 
 
+
 float getWindSpeedData(){
-  return float(random(10,40))/10;
+  float conv_step = 0.0; // converte il voltaggio in velocità del vento
+  val = analogRead(anemometer);
+  voltage = val * analog_to_volt_conv;
+  Serial.println(val);
+  Serial.println(voltage);
+  if(voltage <= vmin){
+    return 0.0;
+  }
+  else if(voltage >= vmax){
+    return max_speed;
+  }else{
+    conv_step = (max_speed - min_speed)/(vmax - vmin);
+    return (voltage-vmin) * conv_step;
+  }
+  
 }
 
 
@@ -202,6 +225,8 @@ void publishMQTT(float temperature, float pressure, float humidity, float windSp
 }
 
 void loop() {
+
+  
   if (!client.connected()) {
     reconnect();
   }
@@ -215,6 +240,7 @@ void loop() {
 
     float windSpeed = getWindSpeedData();
     int windDirection = getWindDirectiondData();
+    
     publishMQTT(temperature, pressure, humidity, windSpeed, windDirection);
 
   }
