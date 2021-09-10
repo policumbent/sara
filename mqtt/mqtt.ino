@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <Wire.h>
 #include <Adafruit_BME280.h>
+#include <Adafruit_ADS1X15.h>
 #include <Adafruit_Sensor.h>
 #include "PubSubClient.h"
 #include "AS5048A.h"
@@ -10,6 +11,7 @@
 
 Adafruit_BME280 bme; // I2C
 AS5048A angleSensor(SS, true);
+Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
 
 // Replace the next variables with your SSID/Password combination for the wifi
 const char* ssid = "Home Cornaglia"; 
@@ -29,7 +31,7 @@ unsigned long delayTime;
 int anemometer = 34;
 int val = 0;
 float voltage = 0.0;
-float analog_to_volt_conv = 0.00080566406; //converte il valore che legge il pin analogico in un voltaggio. 5V in range di 4096 valori
+float analog_to_volt_conv = 2.0/10720;//3.3/pow(2,16); //converte il valore che legge il pin analogico in un voltaggio. 8V in range di pow(2,16) valori
 
 float vmin = 0.4, vmax = 2.0;
 float min_speed = 0.0, max_speed = 32.4;
@@ -48,14 +50,31 @@ void setup() {
   // per ora salto la verifica del certificato
   /*espClient.setInsecure();*/ 
   
-  angleSensor.begin();
-  /*setup_wifi();*/
-  setup_sensoreTempUm();
   
+  /*setup_wifi();*/
+  setup_magnetometer();
+  setup_sensoreTempUm();
+  setup_adc();
   /*client.setServer(mqtt_server, 8883);*/
   /*client.setCallback(callback); */
   
   pinMode(ledPin, OUTPUT);
+}
+
+
+void setup_magnetometer(){
+  angleSensor.begin();
+  Serial.print("The zero position is: ");
+  Serial.println(angleSensor.getZeroPosition());
+}
+
+void setup_adc(){
+  if (!ads.begin()) {
+    Serial.println("Failed to initialize ADS.");
+    while (1);
+  }
+  // Setup 3V comparator on channel 0
+  ads.startComparator_SingleEnded(0, 1000);
 }
 
 void setup_wifi() {
@@ -157,10 +176,10 @@ void getBME280Data(float *temp, float *pres, float *hum){
 
 
 float getWindSpeedData(){
-  float conv_step = 0.0; // converte il voltaggio in velocità del vento
-  val = analogRead(anemometer);
-  voltage = val * analog_to_volt_conv;
-  Serial.println(val);
+  float wind_speed = 0.0; // converte il voltaggio in velocità del vento
+  int16_t value = ads.getLastConversionResults();
+  voltage = (value * analog_to_volt_conv);
+  Serial.println(value);
   Serial.println(voltage);
   if(voltage <= vmin){
     return 0.0;
@@ -168,8 +187,8 @@ float getWindSpeedData(){
   else if(voltage >= vmax){
     return max_speed;
   }else{
-    conv_step = (max_speed - min_speed)/(vmax - vmin);
-    return (voltage-vmin) * conv_step;
+    wind_speed = ((voltage-vmin) * (max_speed - min_speed)/(vmax - vmin))*3.6;
+    return wind_speed;
   }
   
 }
@@ -217,10 +236,10 @@ float getWindSpeedDataSte(){
   Serial.println(wind_speed);
   return wind_speed;  
 }*/
-
+/*
 float getWindSpeedDataSte(){
-  int analog_value = analogRead(anemometer);
-  float voltage_val = 3.3* float(analog_value) / 4095;//float(analog_value) * analog_to_volt_conv;
+  int16_t analog_value = ads.getLastConversionResults();
+  float voltage_val = 3.3* float(analog_value) / pow(2,16);//float(analog_value) * analog_to_volt_conv;
   Serial.print("Voltage: ");
   Serial.println(voltage_val);
   if(voltage_val <= vmin)
@@ -233,10 +252,12 @@ float getWindSpeedDataSte(){
   Serial.println(wind_speed);
   return wind_speed;  
 }
+*/
 
 int getWindDirectiondData(){
   return angleSensor.getRotationInDegrees();
 }
+
 
 void publishMQTT(float temperature, float pressure, float humidity, float windSpeed, int windDirection){
     digitalWrite(ledPin, HIGH);
@@ -289,10 +310,11 @@ void loop() {
     float temperature, humidity, pressure;
     getBME280Data(&temperature, &pressure, &humidity);
 
-    float windSpeed = getWindSpeedDataSte();
+    float windSpeed = getWindSpeedData();
     int windDirection = getWindDirectiondData();
     
     publishMQTT(temperature, pressure, humidity, windSpeed, windDirection);
 
+    delay(200);
   }
 }
