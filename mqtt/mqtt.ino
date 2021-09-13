@@ -1,10 +1,12 @@
-
 #include <WiFiClientSecure.h>
 #include <stdio.h>
 #include <Wire.h>
+#include <SPI.h>
+#include <SD.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_ADS1X15.h>
 #include <Adafruit_Sensor.h>
+#include <RTClib.h>
 #include "PubSubClient.h"
 #include "AS5048A.h"
 #define SEALEVELPRESSURE_HPA (1013.25)
@@ -12,6 +14,8 @@
 Adafruit_BME280 bme; // I2C
 AS5048A angleSensor(SS, true);
 Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
+RTC_DS1307 rtc; /* REAL TIME CLOCK */
+
 
 // Replace the next variables with your SSID/Password combination for the wifi
 const char* ssid = "Home Cornaglia"; 
@@ -28,7 +32,7 @@ const int led = 2;
 int status = 0;
 unsigned long delayTime;
 
-int anemometer = 34;
+File data_log; 
 int val = 0;
 float voltage = 0.0;
 float analog_to_volt_conv = 2.0/10720;//3.3/pow(2,16); //converte il valore che legge il pin analogico in un voltaggio. 8V in range di pow(2,16) valori
@@ -52,6 +56,8 @@ void setup() {
   
   
   /*setup_wifi();*/
+  setup_rtc();
+  setup_sd();
   setup_magnetometer();
   setup_sensoreTempUm();
   setup_adc();
@@ -61,6 +67,34 @@ void setup() {
   pinMode(ledPin, OUTPUT);
 }
 
+
+void setup_rtc(){
+  if(!rtc.begin()){
+    Serial.println("Problems setting up RTC module");
+    while(1) ;
+  }
+  Serial.println("RTC correctly set up");
+  if(!rtc.isrunning()){
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));  
+  }
+}
+
+void setup_sd(){
+  auto open_mode = FILE_APPEND;
+  if(!SD.begin(22)){
+    Serial.println("Impossible to connect SD reader");  
+    while(1);
+  }
+  Serial.println("Successful initialization sd card");
+  SD.mkdir("logs");
+  if(!SD.exists("logs/data.log")){
+    open_mode = FILE_WRITE;  
+  }
+  data_log = SD.open("logs/data.log", open_mode);
+
+  data_log.print("DATA LOG: \n\n");
+  data_log.close();
+}
 
 void setup_magnetometer(){
   angleSensor.begin();
@@ -258,9 +292,94 @@ int getWindDirectiondData(){
   return angleSensor.getRotationInDegrees();
 }
 
+DateTime getDateTime(){
+    return rtc.now();
+}
 
-void publishMQTT(float temperature, float pressure, float humidity, float windSpeed, int windDirection){
+
+void write_sd(float temperature, float pressure, float humidity, float windSpeed, int windDirection, DateTime timestamp){
+
+    // printing on file
+    data_log = SD.open("logs/data.log", "a");
+    String data_to_print = "MQTT --- ";   // ---> this string should contain all the information and write just once on the file --> this should reduce errors
+    //TIME
+    data_log.print(timestamp.year(), DEC);
+    data_log.print("/");
+    data_log.print(timestamp.month(), DEC);
+    data_log.print("/");
+    data_log.print(timestamp.day(), DEC);
+    data_log.print("  ");
+    data_log.print(timestamp.hour(), DEC);
+    data_log.print(":");
+    data_log.print(timestamp.minute(), DEC);
+    data_log.print(":");
+    data_log.println(timestamp.second(), DEC);
+
+    data_to_print += String(timestamp.year(), DEC)+"/"+String(timestamp.month(), DEC)+"/"+String(timestamp.day(), DEC)+"  ";
+    data_to_print += String(timestamp.hour(), DEC)+":"+String(timestamp.minute(), DEC)+":"+String(timestamp.second(), DEC) + "\n";
+    
+    // Convert the value to a char array
+    char buffer[8];
+    dtostrf(temperature, 1, 2, buffer);
+    data_log.print("Temperature: ");
+    data_log.println(buffer);
+
+    data_to_print += "Temperature " + String(buffer) + "\n";
+
+    // Convert the value to a char array
+    dtostrf(humidity, 1, 2, buffer);
+    data_log.print("Humidity: ");
+    data_log.println(buffer);
+
+    data_to_print += "Humidity: " + String(buffer) + "\n";
+
+    // Convert the value to a char array
+    dtostrf(pressure, 1, 2, buffer);
+    data_log.print("Pressure: ");
+    data_log.println(buffer);
+
+    data_to_print += "Pressure: " + String(buffer) + "\n";
+
+    // Convert the value to a char array
+    dtostrf(windSpeed, 1, 2, buffer);
+    data_log.print("Wind Speed: ");
+    data_log.println(buffer);
+
+    data_to_print += "Wind Speed: " + String(buffer) + "\n";
+
+    // Convert the value to a char array
+    String(windDirection).toCharArray(buffer,8);
+    data_log.print("Wind Direction: ");
+    data_log.println(buffer);
+
+    data_to_print += "Wind Direction " + String(buffer) + "\n";
+
+    data_to_print += "\n- - - - - - - - - - - - - - -\n";
+    data_log.println("\n- - - - - - - - - - - - - - -\n");
+    
+    data_log.close();
+}
+
+void publishMQTT(float temperature, float pressure, float humidity, float windSpeed, int windDirection, DateTime timestamp){
+    
     digitalWrite(ledPin, HIGH);
+
+    Serial.println("\n- - - - - MQTT DATA - - - - -\n");
+
+    //TIME
+    Serial.print(timestamp.year(), DEC);
+    Serial.print("/");
+    Serial.print(timestamp.month(), DEC);
+    Serial.print("/");
+    Serial.print(timestamp.day(), DEC);
+    Serial.print("  ");
+    Serial.print(timestamp.hour(), DEC);
+    Serial.print(":");
+    Serial.print(timestamp.minute(), DEC);
+    Serial.print(":");
+    Serial.println(timestamp.second(), DEC);
+    
+
     // Convert the value to a char array
     char buffer[8];
     dtostrf(temperature, 1, 2, buffer);
@@ -278,7 +397,7 @@ void publishMQTT(float temperature, float pressure, float humidity, float windSp
     dtostrf(pressure, 1, 2, buffer);
     Serial.print("Pressure: ");
     Serial.println(buffer);
-    client.publish("weather_stations/ws1/pressure", buffer);
+    //client.publish("weather_stations/ws1/pressure", buffer);
 
     // Convert the value to a char array
     dtostrf(windSpeed, 1, 2, buffer);
@@ -291,6 +410,7 @@ void publishMQTT(float temperature, float pressure, float humidity, float windSp
     Serial.print("Wind Direction: ");
     Serial.println(buffer);
     //client.publish("weather_stations/ws1/wind_direction", buffer);
+    
     digitalWrite(ledPin, LOW);
 
     Serial.println("\n- - - - - - - - - - - - - - -\n");
@@ -305,16 +425,15 @@ void loop() {
   client.loop();
 */
   long now = millis();
-  if (now - lastMsg > 1000) {
+  if (now - lastMsg > 2000) {
     lastMsg = now;
     float temperature, humidity, pressure;
     getBME280Data(&temperature, &pressure, &humidity);
 
     float windSpeed = getWindSpeedData();
     int windDirection = getWindDirectiondData();
-    
-    publishMQTT(temperature, pressure, humidity, windSpeed, windDirection);
-
-    delay(200);
+    DateTime timestamp = getDateTime();
+    publishMQTT(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
+    //write_sd(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
   }
 }
