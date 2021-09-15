@@ -18,8 +18,8 @@ RTC_DS1307 rtc; /* REAL TIME CLOCK */
 
 
 // Replace the next variables with your SSID/Password combination for the wifi
-const char* ssid = "Home Cornaglia"; 
-const char* password = "homecornaglia_toaldo2019";
+const char* ssid = "toolbox"; 
+const char* password = "Toolbox.Torino";
 
 // username e password server mqtt
 const char* username = "stefano";
@@ -35,7 +35,7 @@ unsigned long delayTime;
 File data_log; 
 int val = 0;
 float voltage = 0.0;
-float analog_to_volt_conv = 2.0/10720;//3.3/pow(2,16); //converte il valore che legge il pin analogico in un voltaggio. 8V in range di pow(2,16) valori
+float analog_to_volt_conv = 2.0/10720; //converte il valore che legge il pin analogico in un voltaggio. 8V in range di pow(2,16) valori
 
 float vmin = 0.4, vmax = 2.0;
 float min_speed = 0.0, max_speed = 32.4;
@@ -52,26 +52,34 @@ void setup() {
   Serial.begin(115200);
   
   // per ora salto la verifica del certificato
-  /*espClient.setInsecure();*/ 
+  espClient.setInsecure(); 
+
+  client.setServer(mqtt_server, 8883);
+  client.setCallback(callback);
   
   
-  /*setup_wifi();*/
+  setup_wifi();
   setup_rtc();
-  setup_sd();
-  setup_magnetometer();
+  //setup_sd();
+  //setup_magnetometer();
   setup_sensoreTempUm();
   setup_adc();
-  /*client.setServer(mqtt_server, 8883);*/
-  /*client.setCallback(callback); */
   
   pinMode(ledPin, OUTPUT);
 }
 
 
 void setup_rtc(){
+
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+  
   if(!rtc.begin()){
     Serial.println("Problems setting up RTC module");
-    while(1) ;
+    client.publish("SENSORE RTC: ", "NOT WORKING");
+    while(1) delay(100);
   }
   Serial.println("RTC correctly set up");
   if(!rtc.isrunning()){
@@ -80,17 +88,26 @@ void setup_rtc(){
 }
 
 void setup_sd(){
-  auto open_mode = FILE_APPEND;
-  if(!SD.begin(22)){
+  
+  pinMode(2, OUTPUT);
+  
+  auto open_mode = FILE_WRITE;
+  
+  if(!SD.begin(2)){
     Serial.println("Impossible to connect SD reader");  
     while(1);
   }
+  
   Serial.println("Successful initialization sd card");
-  SD.mkdir("logs");
-  if(!SD.exists("logs/data.log")){
-    open_mode = FILE_WRITE;  
+  if(!SD.exists("data.txt")){
+    Serial.println("The dir doesn't exist");
   }
-  data_log = SD.open("logs/data.log", open_mode);
+  data_log = SD.open("data.txt", open_mode);
+
+  if(!data_log){
+    Serial.println("Error opening the file");
+    while(1);    
+  }
 
   data_log.print("DATA LOG: \n\n");
   data_log.close();
@@ -103,9 +120,16 @@ void setup_magnetometer(){
 }
 
 void setup_adc(){
+  
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+  
   if (!ads.begin()) {
     Serial.println("Failed to initialize ADS.");
-    while (1);
+    client.publish("SENSORE ADC: ", "NOT WORKING");
+    while (1) delay(100);
   }
   // Setup 3V comparator on channel 0
   ads.startComparator_SingleEnded(0, 1000);
@@ -133,6 +157,13 @@ void setup_wifi() {
 }
 
 void setup_sensoreTempUm(){
+
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  
   status = bme.begin(0x76);//inizializzazione sensore temperatura
   for(int i=0x00; !status && i< 0xFF; i++){
     status = bme.begin(0x76);
@@ -145,6 +176,8 @@ void setup_sensoreTempUm(){
       Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
       Serial.print("        ID of 0x60 represents a BME 280.\n");
       Serial.print("        ID of 0x61 represents a BME 680.\n");
+
+      client.publish("SENSORE BME: ", "NOT WORKING");
       while(1) delay(10);
   }else{
    Serial.println("The sensor is connected");
@@ -227,67 +260,6 @@ float getWindSpeedData(){
   
 }
 
-// float map_range(int x, float in_min, float in_max, float out_min, float out_max){
-//   // mappa un numero da un range ad un altro
-//   float mapped = .0
-//   int in_range = in_max - in_min;
-//   int in_delta = x - in_min;
-//   if (in_range != 0)
-//     mapped = in_delta;
-//   else
-//     mapped = 0.5;
-  
-// }
-
-/*
-float getWindSpeedDataSte(){
-  int analog_value = analogRead(anemometer);
-  int voltage_val = float(analog_value) / 65535 * 3.3;
-  Serial.print("Voltage: ");
-  Serial.println(voltage_val);
-  if(voltage_val <= vmin)
-    return 0.0;
-  else if(voltage >= vmax)
-    return max_speed;
-  float wind_speed = map(voltage_val, vmin, vmax, min_speed, max_speed);
-  Serial.print("Wind speed: ");
-  Serial.println(wind_speed);
-  return wind_speed;  
-}*/
-/*
-float getWindSpeedDataSte(){
-  int analog_value = analogRead(anemometer);
-  //int voltage_val = float(analog_value) / 65535 * 3.3;
-  int voltage_val = 3.3* float(analog_value) / 4095;
-  Serial.print("Voltage: ");
-  Serial.println(voltage_val);
-  if(voltage_val <= vmin)
-    return 0.0;
-  else if(voltage >= vmax)
-    return max_speed;
-  float wind_speed = map(voltage_val, vmin, vmax, min_speed, max_speed);
-  Serial.print("Wind speed: ");
-  Serial.println(wind_speed);
-  return wind_speed;  
-}*/
-/*
-float getWindSpeedDataSte(){
-  int16_t analog_value = ads.getLastConversionResults();
-  float voltage_val = 3.3* float(analog_value) / pow(2,16);//float(analog_value) * analog_to_volt_conv;
-  Serial.print("Voltage: ");
-  Serial.println(voltage_val);
-  if(voltage_val <= vmin)
-    return 0.0;
-  else if(voltage >= vmax)
-    return max_speed;
-  voltage_val=voltage_val-0.4;
-  float wind_speed = voltage_val/ 1.6*32.4 ;
-  Serial.print("Wind speed: ");
-  Serial.println(wind_speed);
-  return wind_speed;  
-}
-*/
-
 int getWindDirectiondData(){
   return angleSensor.getRotationInDegrees();
 }
@@ -300,7 +272,7 @@ DateTime getDateTime(){
 void write_sd(float temperature, float pressure, float humidity, float windSpeed, int windDirection, DateTime timestamp){
 
     // printing on file
-    data_log = SD.open("logs/data.log", "a");
+    data_log = SD.open("data.txt", FILE_WRITE);
     String data_to_print = "MQTT --- ";   // ---> this string should contain all the information and write just once on the file --> this should reduce errors
     //TIME
     data_log.print(timestamp.year(), DEC);
@@ -385,31 +357,31 @@ void publishMQTT(float temperature, float pressure, float humidity, float windSp
     dtostrf(temperature, 1, 2, buffer);
     Serial.print("Temperature: ");
     Serial.println(buffer);
-    //client.publish("weather_stations/ws1/temperature", buffer);
+    client.publish("weather_stations/ws1/temperature", buffer);
 
     // Convert the value to a char array
     dtostrf(humidity, 1, 2, buffer);
     Serial.print("Humidity: ");
     Serial.println(buffer);
-    //client.publish("weather_stations/ws1/humidity", buffer);
+    client.publish("weather_stations/ws1/humidity", buffer);
 
     // Convert the value to a char array
     dtostrf(pressure, 1, 2, buffer);
     Serial.print("Pressure: ");
     Serial.println(buffer);
-    //client.publish("weather_stations/ws1/pressure", buffer);
+    client.publish("weather_stations/ws1/pressure", buffer);
 
     // Convert the value to a char array
     dtostrf(windSpeed, 1, 2, buffer);
     Serial.print("Wind Speed: ");
     Serial.println(buffer);
-    //client.publish("weather_stations/ws1/wind_speed", buffer);
+    client.publish("weather_stations/ws1/wind_speed", buffer);
 
     // Convert the value to a char array
     String(windDirection).toCharArray(buffer,8);
     Serial.print("Wind Direction: ");
     Serial.println(buffer);
-    //client.publish("weather_stations/ws1/wind_direction", buffer);
+    client.publish("weather_stations/ws1/wind_direction", buffer);
     
     digitalWrite(ledPin, LOW);
 
@@ -418,12 +390,11 @@ void publishMQTT(float temperature, float pressure, float humidity, float windSp
 
 void loop() {
 
- /* 
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-*/
+
   long now = millis();
   if (now - lastMsg > 2000) {
     lastMsg = now;
@@ -432,8 +403,10 @@ void loop() {
 
     float windSpeed = getWindSpeedData();
     int windDirection = getWindDirectiondData();
-    DateTime timestamp = getDateTime();
+    DateTime timestamp;
+    timestamp = getDateTime();
     publishMQTT(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
     //write_sd(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
+  
   }
 }
