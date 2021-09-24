@@ -1,6 +1,7 @@
 #include <WiFiClientSecure.h>
 #include <stdio.h>
 #include <Wire.h>
+#include "FS.h"
 #include <SPI.h>
 #include <SD.h>
 #include <Adafruit_BME280.h>
@@ -59,9 +60,9 @@ void setup() {
   
   
   setup_wifi();
-  setup_rtc();
-  //setup_sd();
-  //setup_magnetometer();
+  setup_sd();
+  //setup_rtc();
+  setup_magnetometer();
   setup_sensoreTempUm();
   setup_adc();
   
@@ -81,7 +82,9 @@ void setup_rtc(){
     client.publish("SENSORE RTC: ", "NOT WORKING");
     while(1) delay(100);
   }
-  Serial.println("RTC correctly set up");
+
+  Serial.println("CORRECTLY INITIALIZED: RTC");
+  
   if(!rtc.isrunning()){
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));  
   }
@@ -89,23 +92,40 @@ void setup_rtc(){
 
 void setup_sd(){
   
-  pinMode(2, OUTPUT);
-  
   auto open_mode = FILE_WRITE;
+
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
   
-  if(!SD.begin(2)){
-    Serial.println("Impossible to connect SD reader");  
+  if(!SD.begin(2, SPI)){
+    Serial.println("Impossible to connect SD reader");
+    client.publish("SENSORE SD CARD: ", "NOT WORKING");  
+    while(1) delay(100);
+  }
+
+  uint8_t cardType = SD.cardType();
+
+  if(cardType == CARD_NONE){
+    Serial.println("No SD card attached");
     while(1);
   }
+
+  Serial.println("CORRECTLY INITIALIZED: SD CARD");
   
-  Serial.println("Successful initialization sd card");
-  if(!SD.exists("data.txt")){
-    Serial.println("The dir doesn't exist");
+  
+  if(!SD.exists("/data.txt")){
+    Serial.println("The file ./data.txt doesn't exist --- CREATING...");
+  }else{
+    open_mode = FILE_APPEND;  
   }
-  data_log = SD.open("data.txt", open_mode);
+  data_log = SD.open("/data.txt", open_mode);
 
   if(!data_log){
-    Serial.println("Error opening the file");
+    Serial.print("Error opening the file: ");
+    Serial.print(data_log);
+    data_log.close();
     while(1);    
   }
 
@@ -113,10 +133,9 @@ void setup_sd(){
   data_log.close();
 }
 
-void setup_magnetometer(){
+void setup_magnetometer(){  
   angleSensor.begin();
-  Serial.print("The zero position is: ");
-  Serial.println(angleSensor.getZeroPosition());
+  Serial.println("CORRECTLY INITIALIZED: MAGNETIC ENCODER");
 }
 
 void setup_adc(){
@@ -126,13 +145,14 @@ void setup_adc(){
   }
   client.loop();
   
-  if (!ads.begin()) {
+  if (!ads.begin(0b1001000)) {
     Serial.println("Failed to initialize ADS.");
     client.publish("SENSORE ADC: ", "NOT WORKING");
     while (1) delay(100);
   }
-  // Setup 3V comparator on channel 0
-  ads.startComparator_SingleEnded(0, 1000);
+
+  Serial.println("CORRECTLY INITIALIZED: ADC");
+
 }
 
 void setup_wifi() {
@@ -179,11 +199,10 @@ void setup_sensoreTempUm(){
 
       client.publish("SENSORE BME: ", "NOT WORKING");
       while(1) delay(10);
-  }else{
-   Serial.println("The sensor is connected");
   }
 
- Serial.println("SETUP: DONE");
+    Serial.println("CORRECTLY INITIALIZED: BME280");
+  
   }
 
 void callback(char* topic, byte* message, unsigned int length) {
@@ -244,10 +263,13 @@ void getBME280Data(float *temp, float *pres, float *hum){
 
 float getWindSpeedData(){
   float wind_speed = 0.0; // converte il voltaggio in velocità del vento
-  int16_t value = ads.getLastConversionResults();
-  voltage = (value * analog_to_volt_conv);
-  Serial.println(value);
+  int16_t val = ads.readADC_SingleEnded(0);
+  voltage = (val * analog_to_volt_conv);
+  Serial.println(val);
   Serial.println(voltage);
+  char buff[8];
+  
+  client.publish("VOLTAGE: ", );
   if(voltage <= vmin){
     return 0.0;
   }
@@ -272,7 +294,7 @@ DateTime getDateTime(){
 void write_sd(float temperature, float pressure, float humidity, float windSpeed, int windDirection, DateTime timestamp){
 
     // printing on file
-    data_log = SD.open("data.txt", FILE_WRITE);
+    data_log = SD.open("/data.txt", FILE_APPEND);
     String data_to_print = "MQTT --- ";   // ---> this string should contain all the information and write just once on the file --> this should reduce errors
     //TIME
     data_log.print(timestamp.year(), DEC);
@@ -396,7 +418,7 @@ void loop() {
   client.loop();
 
   long now = millis();
-  if (now - lastMsg > 2000) {
+  if (now - lastMsg > 1000) {
     lastMsg = now;
     float temperature, humidity, pressure;
     getBME280Data(&temperature, &pressure, &humidity);
@@ -404,9 +426,9 @@ void loop() {
     float windSpeed = getWindSpeedData();
     int windDirection = getWindDirectiondData();
     DateTime timestamp;
-    timestamp = getDateTime();
+    //timestamp = getDateTime();
     publishMQTT(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
-    //write_sd(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
+    write_sd(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
   
   }
 }
