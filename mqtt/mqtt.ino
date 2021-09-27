@@ -36,9 +36,9 @@ unsigned long delayTime;
 File data_log; 
 int val = 0;
 float voltage = 0.0;
-float analog_to_volt_conv = 2.0/10720; //converte il valore che legge il pin analogico in un voltaggio. 8V in range di pow(2,16) valori
+//float analog_to_volt_conv = 2.0/10720; //converte il valore che legge il pin analogico in un voltaggio.
 
-float vmin = 0.4, vmax = 2.0;
+float vmin = 0.41, vmax = 2.0;
 float min_speed = 0.0, max_speed = 32.4;
 
 WiFiClientSecure espClient;
@@ -61,7 +61,7 @@ void setup() {
   
   setup_wifi();
   setup_sd();
-  //setup_rtc();
+  setup_rtc();
   setup_magnetometer();
   setup_sensoreTempUm();
   setup_adc();
@@ -264,12 +264,17 @@ void getBME280Data(float *temp, float *pres, float *hum){
 float getWindSpeedData(){
   float wind_speed = 0.0; // converte il voltaggio in velocità del vento
   int16_t val = ads.readADC_SingleEnded(0);
-  voltage = (val * analog_to_volt_conv);
+
+  
+  //voltage = (val * analog_to_volt_conv);
+  voltage = ads.computeVolts(val);
+  
   Serial.println(val);
   Serial.println(voltage);
-  char buff[8];
   
-  client.publish("VOLTAGE: ", );
+  char buffer[8];
+  dtostrf(voltage, 1, 2, buffer);
+  client.publish("weather_stations/ws1/humidity", buffer);
   if(voltage <= vmin){
     return 0.0;
   }
@@ -426,7 +431,7 @@ void loop() {
     float windSpeed = getWindSpeedData();
     int windDirection = getWindDirectiondData();
     DateTime timestamp;
-    //timestamp = getDateTime();
+    timestamp = getDateTime();
     publishMQTT(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
     write_sd(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
   
