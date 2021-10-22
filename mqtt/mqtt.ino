@@ -12,6 +12,16 @@
 #include "AS5048A.h"
 #define SEALEVELPRESSURE_HPA (1013.25)
 
+
+// USA QUESTI PER DEBUGGARE NON COMMENTARE
+#define WIFI_DEBUG         1
+#define SD_DEBUG           1
+#define MAGNETOMETER_DEBUG 1
+#define BME_DEBUG          1
+#define ADC_DEBUG          1
+#define RTC_DEBUG          1
+#define ANEMOMETER_DEBUG   1
+
 Adafruit_BME280 bme; // I2C
 AS5048A angleSensor(SS, true);
 Adafruit_ADS1115 ads;  /* Use this for the 16-bit version */
@@ -40,6 +50,9 @@ float voltage = 0.0;
 
 float vmin = 0.41, vmax = 2.0;
 float min_speed = 0.0, max_speed = 32.4;
+float temperature, humidity, pressure;
+float windSpeed, windDirection;
+DateTime timestamp_;
 
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
@@ -58,13 +71,29 @@ void setup() {
   client.setServer(mqtt_server, 8883);
   client.setCallback(callback);
   
-  
+#if WIFI_DEBUG
   setup_wifi();
+#endif
+
+#if SD_DEBUG
   setup_sd();
-  setup_rtc();
+#endif
+
+#if MAGNETOMETER_DEBUG
   setup_magnetometer();
+#endif
+
+#if BME_DEBUG
   setup_sensoreTempUm();
+#endif
+
+#if ADC_DEBUG
   setup_adc();
+#endif
+
+#if RTC_DEBUG
+  setup_rtc();
+#endif
   
   pinMode(ledPin, OUTPUT);
 }
@@ -72,14 +101,18 @@ void setup() {
 
 void setup_rtc(){
 
+
+#if WIFI_DEBUG
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-  
+#endif
   if(!rtc.begin()){
     Serial.println("Problems setting up RTC module");
+#if WIFI_DEBUG
     client.publish("SENSORE RTC: ", "NOT WORKING");
+#endif
     while(1) delay(100);
   }
 
@@ -94,14 +127,20 @@ void setup_sd(){
   
   auto open_mode = FILE_WRITE;
 
+#if WIFI_DEBUG
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-  
+#endif
+
   if(!SD.begin(2, SPI)){
     Serial.println("Impossible to connect SD reader");
+
+#if WIFI_DEBUG
     client.publish("SENSORE SD CARD: ", "NOT WORKING");  
+#endif
+
     while(1) delay(100);
   }
 
@@ -139,20 +178,25 @@ void setup_magnetometer(){
 }
 
 void setup_adc(){
-  
+
+#if WIFI_DEBUG  
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-  
+#endif
+
   if (!ads.begin(0b1001000)) {
-    Serial.println("Failed to initialize ADS.");
+    Serial.println("Failed to initialize ADC.");
+
+#if WIFI_DEBUG
     client.publish("SENSORE ADC: ", "NOT WORKING");
+#endif
+
     while (1) delay(100);
   }
 
   Serial.println("CORRECTLY INITIALIZED: ADC");
-
 }
 
 void setup_wifi() {
@@ -264,17 +308,19 @@ void getBME280Data(float *temp, float *pres, float *hum){
 float getWindSpeedData(){
   float wind_speed = 0.0; // converte il voltaggio in velocità del vento
   int16_t val = ads.readADC_SingleEnded(0);
-
   
   //voltage = (val * analog_to_volt_conv);
   voltage = ads.computeVolts(val);
   
   Serial.println(val);
   Serial.println(voltage);
-  
+
+#if WIFI_DEBUG
   char buffer[8];
   dtostrf(voltage, 1, 2, buffer);
   client.publish("weather_stations/ws1/humidity", buffer);
+#endif
+  
   if(voltage <= vmin){
     return 0.0;
   }
@@ -294,7 +340,6 @@ int getWindDirectiondData(){
 DateTime getDateTime(){
     return rtc.now();
 }
-
 
 void write_sd(float temperature, float pressure, float humidity, float windSpeed, int windDirection, DateTime timestamp){
 
@@ -384,32 +429,46 @@ void publishMQTT(float temperature, float pressure, float humidity, float windSp
     dtostrf(temperature, 1, 2, buffer);
     Serial.print("Temperature: ");
     Serial.println(buffer);
+ #if WIFI_DEBUG
     client.publish("weather_stations/ws1/temperature", buffer);
+#endif
 
     // Convert the value to a char array
     dtostrf(humidity, 1, 2, buffer);
     Serial.print("Humidity: ");
     Serial.println(buffer);
+
+#if WIFI_DEBUG
     client.publish("weather_stations/ws1/humidity", buffer);
+#endif
 
     // Convert the value to a char array
     dtostrf(pressure, 1, 2, buffer);
     Serial.print("Pressure: ");
     Serial.println(buffer);
+
+#if WIFI_DEBUG
     client.publish("weather_stations/ws1/pressure", buffer);
+#endif
 
     // Convert the value to a char array
     dtostrf(windSpeed, 1, 2, buffer);
     Serial.print("Wind Speed: ");
     Serial.println(buffer);
+
+#if WIFI_DEBUG
     client.publish("weather_stations/ws1/wind_speed", buffer);
+#endif
 
     // Convert the value to a char array
     String(windDirection).toCharArray(buffer,8);
     Serial.print("Wind Direction: ");
     Serial.println(buffer);
+
+#if WIFI_DEBUG   
     client.publish("weather_stations/ws1/wind_direction", buffer);
-    
+#endif
+
     digitalWrite(ledPin, LOW);
 
     Serial.println("\n- - - - - - - - - - - - - - -\n");
@@ -417,23 +476,42 @@ void publishMQTT(float temperature, float pressure, float humidity, float windSp
 
 void loop() {
 
+#if WIFI_DEBUG
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
+#endif
 
   long now = millis();
   if (now - lastMsg > 1000) {
     lastMsg = now;
-    float temperature, humidity, pressure;
-    getBME280Data(&temperature, &pressure, &humidity);
 
-    float windSpeed = getWindSpeedData();
-    int windDirection = getWindDirectiondData();
-    DateTime timestamp;
-    timestamp = getDateTime();
-    publishMQTT(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
-    write_sd(temperature, pressure, humidity, windSpeed, windDirection, timestamp);
-  
+#if BME_DEBUG
+    getBME280Data(&temperature, &pressure, &humidity);
+#else
+    temperature = 0.0;
+    pressure = 0.0;
+    humidity = 0.0;
+#endif
+#if ANEMOMETER_DEBUG
+    windSpeed = getWindSpeedData();
+#else
+    windSpeed = 0.0;
+#endif
+
+#if MAGNETOMETER_DEBUG
+    windDirection = getWindDirectiondData();
+#else
+    windDirection = 0.0;
+#endif
+
+#if RTC_DEBUG
+      timestamp_ = getDateTime();
+#endif
+
+    publishMQTT(temperature, pressure, humidity, windSpeed, windDirection, timestamp_);
+    write_sd(temperature, pressure, humidity, windSpeed, windDirection, timestamp_);  
+
   }
 }
