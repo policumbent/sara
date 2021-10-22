@@ -23,9 +23,17 @@
 - [x] Boost converter(In uscita deve essere ad 8V non 10V)
 
 
-## Librerie da installare:
+## Librerie da installare
 
 	- Aggiungere https://dl.espressif.com/dl/package_esp32_index.json ai gestori scheda
 	- installare la scheda esp32
 	- installare le librerie incluse nel file
 	- includere tramite .zip le librerie aggiuntive tipo AS5048A
+	
+	
+## Come usare la stazione
+	0) Calibrare la bandierina in modo da trovare lo 0° (usa la seriale e muovi la bandierina usando la punta come ago) e segnare la posizione
+	1) Posizionare la punta della bandierina sullo 0 (quello è il polo N del magnete)
+	2) Creare un Hotspot Wifi con SSD: "toolbox", password: "Toolbox.Torino" (in caso non funzioni controllate il codice) 
+	3) avviare la stazione che si connetterà automaticamente all'hotspot
+	4) i dati sono pubblicati sul server MQTT e visibili anche da Grafana
