@@ -12,7 +12,6 @@
 #include "AS5048A.h"
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-
 // USA QUESTI PER DEBUGGARE NON COMMENTARE
 #define WIFI_DEBUG         1
 #define SD_DEBUG           1
@@ -21,6 +20,7 @@
 #define ADC_DEBUG          1
 #define RTC_DEBUG          1
 #define ANEMOMETER_DEBUG   1
+
 
 Adafruit_BME280 bme; // I2C
 AS5048A angleSensor(SS, true);
@@ -37,13 +37,14 @@ const char* username = "stefano";
 const char* mqtt_password = "martafaschifo!";
 
 // MQTT server nel lab del poli:
-const char* mqtt_server = "130.192.38.75";
+const char* mqtt_server = "51.38.227.9";
 
 const int led = 2;
 int status = 0;
 unsigned long delayTime;
 
 File data_log; 
+String LOG_FILE = "/";
 int val = 0;
 float voltage = 0.0;
 //float analog_to_volt_conv = 2.0/10720; //converte il valore che legge il pin analogico in un voltaggio.
@@ -75,6 +76,10 @@ void setup() {
   setup_wifi();
 #endif
 
+#if RTC_DEBUG
+  setup_rtc();
+#endif
+
 #if SD_DEBUG
   setup_sd();
 #endif
@@ -90,18 +95,13 @@ void setup() {
 #if ADC_DEBUG
   setup_adc();
 #endif
-
-#if RTC_DEBUG
-  setup_rtc();
-#endif
   
   pinMode(ledPin, OUTPUT);
 }
 
 
 void setup_rtc(){
-
-
+  
 #if WIFI_DEBUG
   if (!client.connected()) {
     reconnect();
@@ -117,6 +117,12 @@ void setup_rtc(){
   }
 
   Serial.println("CORRECTLY INITIALIZED: RTC");
+
+  //the file has the timestamp as name
+  timestamp_ = getDateTime();
+  LOG_FILE += String(timestamp_.year(), DEC)+"_"+String(timestamp_.month(), DEC)+"_"+String(timestamp_.day(), DEC)+"__";
+  LOG_FILE += String(timestamp_.hour(), DEC)+"_"+String(timestamp_.minute(), DEC)+"_"+String(timestamp_.second(), DEC) + ".csv";
+
   
   if(!rtc.isrunning()){
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));  
@@ -126,6 +132,11 @@ void setup_rtc(){
 void setup_sd(){
   
   auto open_mode = FILE_WRITE;
+
+#if !RTC_DEBUG
+  //in case the rtc is not implemented it prints everything in the same file(we can then use another program to separate the CSV files)
+  LOG_FILE += "data.csv";
+#endif
 
 #if WIFI_DEBUG
   if (!client.connected()) {
@@ -154,12 +165,12 @@ void setup_sd(){
   Serial.println("CORRECTLY INITIALIZED: SD CARD");
   
   
-  if(!SD.exists("/data.txt")){
-    Serial.println("The file ./data.txt doesn't exist --- CREATING...");
+  if(!SD.exists(LOG_FILE)){
+    Serial.println("The file ./data.csv doesn't exist --- CREATING...");
   }else{
     open_mode = FILE_APPEND;  
   }
-  data_log = SD.open("/data.txt", open_mode);
+  data_log = SD.open(LOG_FILE, open_mode);
 
   if(!data_log){
     Serial.print("Error opening the file: ");
@@ -168,7 +179,7 @@ void setup_sd(){
     while(1);    
   }
 
-  data_log.print("DATA LOG: \n\n");
+  data_log.print("timeStamp, Temperature, Pressure, Humidity, Wind_Speed, Wind_Direction \n");
   data_log.close();
 }
 
@@ -344,62 +355,35 @@ DateTime getDateTime(){
 void write_sd(float temperature, float pressure, float humidity, float windSpeed, int windDirection, DateTime timestamp){
 
     // printing on file
-    data_log = SD.open("/data.txt", FILE_APPEND);
-    String data_to_print = "MQTT --- ";   // ---> this string should contain all the information and write just once on the file --> this should reduce errors
-    //TIME
-    data_log.print(timestamp.year(), DEC);
-    data_log.print("/");
-    data_log.print(timestamp.month(), DEC);
-    data_log.print("/");
-    data_log.print(timestamp.day(), DEC);
-    data_log.print("  ");
-    data_log.print(timestamp.hour(), DEC);
-    data_log.print(":");
-    data_log.print(timestamp.minute(), DEC);
-    data_log.print(":");
-    data_log.println(timestamp.second(), DEC);
+    data_log = SD.open(LOG_FILE, FILE_APPEND);
+    String data_to_print;   // ---> this string should contain all the information and write just once on the file --> this should reduce errors
 
-    data_to_print += String(timestamp.year(), DEC)+"/"+String(timestamp.month(), DEC)+"/"+String(timestamp.day(), DEC)+"  ";
-    data_to_print += String(timestamp.hour(), DEC)+":"+String(timestamp.minute(), DEC)+":"+String(timestamp.second(), DEC) + "\n";
+    data_to_print += String(timestamp.year(), DEC)+"/"+String(timestamp.month(), DEC)+"/"+String(timestamp.day(), DEC)+" ";
+    data_to_print += String(timestamp.hour(), DEC)+":"+String(timestamp.minute(), DEC)+":"+String(timestamp.second(), DEC) + ", ";
     
     // Convert the value to a char array
     char buffer[8];
     dtostrf(temperature, 1, 2, buffer);
-    data_log.print("Temperature: ");
-    data_log.println(buffer);
-
-    data_to_print += "Temperature " + String(buffer) + "\n";
+    data_to_print += String(buffer) + ", ";
 
     // Convert the value to a char array
     dtostrf(humidity, 1, 2, buffer);
-    data_log.print("Humidity: ");
-    data_log.println(buffer);
-
-    data_to_print += "Humidity: " + String(buffer) + "\n";
+    data_to_print += String(buffer) + ", ";
 
     // Convert the value to a char array
     dtostrf(pressure, 1, 2, buffer);
-    data_log.print("Pressure: ");
-    data_log.println(buffer);
 
-    data_to_print += "Pressure: " + String(buffer) + "\n";
+    data_to_print += String(buffer) + ", ";
 
     // Convert the value to a char array
     dtostrf(windSpeed, 1, 2, buffer);
-    data_log.print("Wind Speed: ");
-    data_log.println(buffer);
-
-    data_to_print += "Wind Speed: " + String(buffer) + "\n";
+    data_to_print += String(buffer) + ", ";
 
     // Convert the value to a char array
     String(windDirection).toCharArray(buffer,8);
-    data_log.print("Wind Direction: ");
-    data_log.println(buffer);
+    data_to_print += String(buffer);
 
-    data_to_print += "Wind Direction " + String(buffer) + "\n";
-
-    data_to_print += "\n- - - - - - - - - - - - - - -\n";
-    data_log.println("\n- - - - - - - - - - - - - - -\n");
+    data_log.println(data_to_print);
     
     data_log.close();
 }
