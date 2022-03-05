@@ -1,4 +1,0 @@
-invertire i poli
-pin piccoli magnetometro
-resistenze
-ADC con pin ALLERT

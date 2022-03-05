@@ -1,4 +1,21 @@
-# Weather-Station-ESP32
+
+# ![SARA](img/banner.png)
+
+<h3 align="center">
+Stazione per l'Analisi di Raffiche Avverse
+<br>
+<br>
+
+[//]: # (TODO: aggiungere contributori)
+
+</h3>
+
+
+
+
+[//]: # (TODO: vecchio readme, capire cosa potrebbe essere utile)
+<!-- 
+
 
 ## Components
 
@@ -20,7 +37,7 @@
 - [x] Sensore temperatura, umidità e pressione
 - [x] Magnetometro per direzione del vento
 - [x] Convertitore analogico digitale ADC
-- [x] Boost converter(In uscita deve essere ad 8V non 10V)
+- [x] Boost converter (In uscita deve essere ad 8V non 10V)
 
 
 ## Librerie da installare
@@ -37,3 +54,5 @@
 	2) Creare un Hotspot Wifi con SSD: "toolbox", password: "Toolbox.Torino" (in caso non funzioni controllate il codice) 
 	3) avviare la stazione che si connetterà automaticamente all'hotspot
 	4) i dati sono pubblicati sul server MQTT e visibili anche da Grafana
+
+-->
