@@ -1,5 +1,5 @@
 
-# ![SARA](img/banner.png)
+![SARA](img/banner.png)
 
 <h3 align="center">
 Stazione per l'Analisi di Raffiche Avverse
