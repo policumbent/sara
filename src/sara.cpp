@@ -3,12 +3,25 @@
 
 using namespace sara;
 
-SensorHandler handler;
+
 long now, lastMsg;
+
+SensorHandler& getHandler(){
+    static SensorHandler handler;
+    try {
+        handler = SensorHandler();
+    }
+    catch(const std::exception& ex){
+        Serial.println(ex.what());
+    }
+    return handler;
+}
+
 
 void setup() {
   Serial.begin(115200);
 
+  Serial.println("BEGIN");
   Serial.println(secured::mqtt_password);
   Serial.println(secured::mqtt_server);
   Serial.println(secured::ssid);
@@ -17,12 +30,10 @@ void setup() {
   //client = PubSubClient(espClient);
 
   // per ora salto la verifica del certificato
-  espClient.setInsecure(); 
+  espClient.setInsecure();
 
   client.setServer(secured::mqtt_server.c_str(), 8883);
   client.setCallback(callback);
-
-  handler = SensorHandler();
 
   pinMode(ledPin, OUTPUT);
 }
@@ -36,29 +47,29 @@ void loop() {
       lastMsg = now;
 
       #if BME_DEBUG
-      handler.getBME280Data();
+        getHandler().getBME280Data();
       #else
           handler.temperature = 0.0;
           handler.pressure = 0.0;
           handler.humidity = 0.0;
       #endif
       #if ANEMOMETER_DEBUG
-        handler.getWindSpeedData();
+        getHandler().getWindSpeedData();
       #else
         handler.windSpeed = 0.0;
       #endif
 
       #if MAGNETOMETER_DEBUG
-        handler.getWindDirectionData();
+        getHandler().getWindDirectionData();
       #else
         handler.windDirection = 0.0;
       #endif
 
       #if RTC_DEBUG
-        handler.getDateTime();
+        getHandler().getDateTime();
       #endif
 
-      publishMQTT(handler.temperature, handler.pressure, handler.humidity, handler.windSpeed, handler.windDirection, handler.timestamp);
-      handler.write_sd();
+      publishMQTT(getHandler().temperature, getHandler().pressure, getHandler().humidity, getHandler().windSpeed, (int) getHandler().windDirection, getHandler().timestamp);
+        getHandler().write_sd();
   }
 }
