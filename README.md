@@ -1,4 +1,3 @@
-
 ![SARA](img/banner.png)
 
 <h3 align="center">
@@ -9,8 +8,6 @@ Stazione per l'Analisi di Raffiche Avverse
 [//]: # (TODO: aggiungere contributori)
 
 </h3>
-
-
 
 
 [//]: # (TODO: vecchio readme, capire cosa potrebbe essere utile)
