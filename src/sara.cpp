@@ -32,8 +32,6 @@ void setup() {
   // per ora salto la verifica del certificato
   espClient.setInsecure();
 
-  getHandler();
-
   client.setServer(secured::mqtt_server.c_str(), 8883);
   client.setCallback(callback);
 

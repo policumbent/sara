@@ -5,8 +5,8 @@
 namespace secured {
     // Replace the next variables with your SSID/Password combination for the wifi
 
-    static String ssid = "toolbox";
-    static String password = "Toolbox.Torino";
+    static String ssid = "ASUS";
+    static String password = "ettore123";
 
     // username e password server mqtt
     static String username = "stefano";
