@@ -55,6 +55,5 @@ private:
   void setup_sd();
   void setup_magnetometer();
   void setup_adc();
-  void setup_wifi();
   void setup_sensorTempUm();
 };

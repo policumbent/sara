@@ -5,13 +5,13 @@ long now;
 long lastMsg;
 
 SensorHandler &getHandler() {
-  static SensorHandler handler;
-  try {
-    handler = SensorHandler();
-  } catch (const std::exception &ex) {
-    Serial.println(ex.what());
-  }
-  return handler;
+    try {
+        static SensorHandler handler = SensorHandler();
+        return handler;
+    }catch (const std::exception &ex) {
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
 }
 
 void setup() {
@@ -33,37 +33,38 @@ void setup() {
 void loop() {
 
   clientConnect();
-//
-//  now = millis();
-//  if (now - lastMsg > 1000) {
-//    lastMsg = now;
-//
-//#if BME_DEBUG
-//    getHandler().getBME280Data();
-//#else
-//    handler.temperature = 0.0;
-//    handler.pressure = 0.0;
-//    handler.humidity = 0.0;
-//#endif
-//#if ANEMOMETER_DEBUG
-//    getHandler().getWindSpeedData();
-//#else
-//    handler.windSpeed = 0.0;
-//#endif
-//
-//#if MAGNETOMETER_DEBUG
-//    getHandler().getWindDirectionData();
-//#else
-//    handler.windDirection = 0.0;
-//#endif
-//
-//#if RTC_DEBUG
-//    getHandler().getDateTime();
-//#endif
-//
-//    publishMQTT(getHandler().temperature, getHandler().pressure,
-//                getHandler().humidity, getHandler().windSpeed,
-//                (int)getHandler().windDirection, getHandler().timestamp);
-//    getHandler().write_sd();
-//  }
+
+  now = millis();
+  if (now - lastMsg > 1000) {
+    lastMsg = now;
+
+#if BME_DEBUG
+    getHandler().getBME280Data();
+#else
+    handler.temperature = 0.0;
+    handler.pressure = 0.0;
+    handler.humidity = 0.0;
+#endif
+#if ANEMOMETER_DEBUG
+    getHandler().getWindSpeedData();
+#else
+    handler.windSpeed = 0.0;
+#endif
+
+#if MAGNETOMETER_DEBUG
+    getHandler().getWindDirectionData();
+#else
+    handler.windDirection = 0.0;
+#endif
+
+#if RTC_DEBUG
+   getHandler().getDateTime();
+#endif
+
+   publishMQTT(getHandler().temperature, getHandler().pressure,
+                getHandler().humidity, getHandler().windSpeed,
+                (int)getHandler().windDirection, getHandler().timestamp);
+
+    getHandler().write_sd();
+  }
 }

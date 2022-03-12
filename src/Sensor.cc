@@ -3,10 +3,6 @@
 
 SensorHandler::SensorHandler() {
 
-#if WIFI_DEBUG
-  setup_wifi();
-#endif
-
 #if RTC_DEBUG
   setup_rtc();
 #endif
@@ -84,8 +80,7 @@ void SensorHandler::setup_sd() {
 
   if (cardType == CARD_NONE) {
     Serial.println("No SD card attached");
-    while (1)
-      ;
+    while (1);
   }
 
   Serial.println("CORRECTLY INITIALIZED: SD CARD");
@@ -101,8 +96,7 @@ void SensorHandler::setup_sd() {
     Serial.print("Error opening the file: ");
     Serial.print(data_log);
     data_log.close();
-    while (1)
-      ;
+    while (1);
   }
 
   data_log.print("timeStamp, Temperature, Pressure, Humidity, Wind_Speed, "
