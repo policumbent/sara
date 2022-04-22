@@ -1,13 +1,16 @@
 #ifndef SARA_DEBUGGING_H
 
-// Use this file for debugging purpose
-#define WIFI_DEBUG         1
-#define SD_DEBUG           1
-#define MAGNETOMETER_DEBUG 1
-#define BME_DEBUG          1
-#define ADC_DEBUG          1
-#define RTC_DEBUG          1
-#define ANEMOMETER_DEBUG   1
+
+const bool WIFI_DEBUG         = true;
+const bool SD_DEBUG           = true;
+const bool MAGNETOMETER_DEBUG = true;
+const bool BME_DEBUG          = true;
+const bool ADC_DEBUG          = true;
+const bool RTC_DEBUG          = true;
+const bool ANEMOMETER_DEBUG   = true;
+
+template<const bool c>
+bool check(){return c;}
 
 
 #define SARA_DEBUGGING_H

@@ -1,5 +1,6 @@
 #include "Server.h"
-#include "Led.h"
+#include "../Led/Led.h"
+#include "../Sensor/Sensor.h"
 
 // Wifi and Mqtt credentials
 #include "credentials.h"
@@ -106,70 +107,69 @@ void reconnect() {
   }
 }
 
-void publishMQTT(float temperature, float pressure, float humidity,
-                 float windSpeed, int windDirection, DateTime timestamp) {
+void publishMQTT(Data data) {
 
-  led_on();
+    led_on();
 
-  Serial.println("\n- - - - - MQTT DATA - - - - -\n");
+    Serial.println("\n- - - - - MQTT DATA - - - - -\n");
 
-  // TIME
-  Serial.print(timestamp.year(), DEC);
-  Serial.print("/");
-  Serial.print(timestamp.month(), DEC);
-  Serial.print("/");
-  Serial.print(timestamp.day(), DEC);
-  Serial.print("  ");
-  Serial.print(timestamp.hour(), DEC);
-  Serial.print(":");
-  Serial.print(timestamp.minute(), DEC);
-  Serial.print(":");
-  Serial.println(timestamp.second(), DEC);
+    // TIME
+    Serial.print(data.timestamp.year(), DEC);
+    Serial.print("/");
+    Serial.print(data.timestamp.month(), DEC);
+    Serial.print("/");
+    Serial.print(data.timestamp.day(), DEC);
+    Serial.print("  ");
+    Serial.print(data.timestamp.hour(), DEC);
+    Serial.print(":");
+    Serial.print(data.timestamp.minute(), DEC);
+    Serial.print(":");
+    Serial.println(data.timestamp.second(), DEC);
+
+    // Convert the value to a char array
+    char buffer[8];
+    dtostrf(data.temperature, 1, 2, buffer);
+    Serial.print("Temperature: ");
+    Serial.println(buffer);
+    if (check<WIFI_DEBUG>()){
+        client.publish("weather_stations/ws1/temperature", buffer);
+    }
 
   // Convert the value to a char array
-  char buffer[8];
-  dtostrf(temperature, 1, 2, buffer);
-  Serial.print("Temperature: ");
-  Serial.println(buffer);
-#if WIFI_DEBUG
-  client.publish("weather_stations/ws1/temperature", buffer);
-#endif
-
-  // Convert the value to a char array
-  dtostrf(humidity, 1, 2, buffer);
+  dtostrf(data.humidity, 1, 2, buffer);
   Serial.print("Humidity: ");
   Serial.println(buffer);
 
-#if WIFI_DEBUG
-  client.publish("weather_stations/ws1/humidity", buffer);
-#endif
+  if (check<WIFI_DEBUG>()){
+      client.publish("weather_stations/ws1/humidity", buffer);
+  }
 
   // Convert the value to a char array
-  dtostrf(pressure, 1, 2, buffer);
+  dtostrf(data.pressure, 1, 2, buffer);
   Serial.print("Pressure: ");
   Serial.println(buffer);
 
-#if WIFI_DEBUG
-  client.publish("weather_stations/ws1/pressure", buffer);
-#endif
+  if (check<WIFI_DEBUG>()) {
+      client.publish("weather_stations/ws1/pressure", buffer);
+  }
 
   // Convert the value to a char array
-  dtostrf(windSpeed, 1, 2, buffer);
+  dtostrf(data.windSpeed, 1, 2, buffer);
   Serial.print("Wind Speed: ");
   Serial.println(buffer);
 
-#if WIFI_DEBUG
-  client.publish("weather_stations/ws1/wind_speed", buffer);
-#endif
+  if (check<WIFI_DEBUG>()){
+      client.publish("weather_stations/ws1/wind_speed", buffer);
+  }
 
   // Convert the value to a char array
-  String(windDirection).toCharArray(buffer, 8);
+  String(data.windDirection).toCharArray(buffer, 8);
   Serial.print("Wind Direction: ");
   Serial.println(buffer);
 
-#if WIFI_DEBUG
-  client.publish("weather_stations/ws1/wind_direction", buffer);
-#endif
+  if (check<WIFI_DEBUG>()){
+      client.publish("weather_stations/ws1/wind_direction", buffer);
+  }
 
   led_off();
 

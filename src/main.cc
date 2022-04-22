@@ -1,13 +1,61 @@
-#include "Sensor.h"
-#include "Server.h"
+#include "../lib/Sensor/Sensor.h"
+#include "../lib/Server/Server.h"
+#include "../lib/DataBackupSd/DataBackupSD.h"
 
 long now;
 long lastMsg;
 
-SensorHandler &getHandler() {
+
+Data &getData() {
     try {
-        static SensorHandler handler = SensorHandler();
-        return handler;
+        static Data data = Data();
+        return data;
+    }catch (const std::exception &ex) {
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+Sensor<Adafruit_BME280> &getBme() {
+    try {
+        static Sensor<Adafruit_BME280> bme = Sensor<Adafruit_BME280>();
+        return bme;
+    }catch (const std::exception &ex) {
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+Sensor<AS5048A> &getAngleSensor() {
+    try {
+        static Sensor<AS5048A> angleSensor = Sensor<AS5048A>();
+        return angleSensor;
+    }catch (const std::exception &ex) {
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+Sensor<Adafruit_ADS1115> &getAds() {
+    try {
+        static Sensor<Adafruit_ADS1115> ads = Sensor<Adafruit_ADS1115>();
+        return ads;
+    }catch (const std::exception &ex) {
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+Sensor<RTC_DS1307> &getRtc() {
+    try {
+        static Sensor<RTC_DS1307> rtc = Sensor<RTC_DS1307>();
+        return rtc;
+    }catch (const std::exception &ex) {
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+
+SDHandler &getSdHandler(){
+    try {
+        static SDHandler sd_handler = SDHandler(getData());
+        return sd_handler;
     }catch (const std::exception &ex) {
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
@@ -36,35 +84,34 @@ void loop() {
 
   now = millis();
   if (now - lastMsg > 1000) {
-    lastMsg = now;
+      lastMsg = now;
 
-#if BME_DEBUG
-    getHandler().getBME280Data();
-#else
-    handler.temperature = 0.0;
-    handler.pressure = 0.0;
-    handler.humidity = 0.0;
-#endif
-#if ANEMOMETER_DEBUG
-    getHandler().getWindSpeedData();
-#else
-    handler.windSpeed = 0.0;
-#endif
+      if (check<BME_DEBUG>()){
+          getBme().get_data(getData());
+      }else {
+          getData().temperature = 0.0;
+          getData().pressure = 0.0;
+          getData().humidity = 0.0;
+      }
+      if (check<ANEMOMETER_DEBUG>()){
+          getAds().get_data(getData());
+      }else {
+          getData().windSpeed = 0.0;
+      }
 
-#if MAGNETOMETER_DEBUG
-    getHandler().getWindDirectionData();
-#else
-    handler.windDirection = 0.0;
-#endif
+      if (check<MAGNETOMETER_DEBUG>()){
+          getAngleSensor().get_data(getData());
+      }else {
+          getData().windDirection = 0.0;
+      }
 
-#if RTC_DEBUG
-   getHandler().getDateTime();
-#endif
+      if (check<RTC_DEBUG>()){
+          getRtc().get_data(getData());
+      }else {
+          getData().windDirection = 0.0;
+      }
 
-   publishMQTT(getHandler().temperature, getHandler().pressure,
-                getHandler().humidity, getHandler().windSpeed,
-                (int)getHandler().windDirection, getHandler().timestamp);
-
-    getHandler().write_sd();
+      publishMQTT(getData());
+      getSdHandler().write_sd(getData(), getRtc());
   }
 }
