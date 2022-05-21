@@ -1,5 +1,7 @@
 #pragma once
 
+# ifndef SENSORS_H
+# define SENSORS_H
 #include <Arduino.h>
 
 #include "FS.h"
@@ -9,10 +11,10 @@
 #include <RTClib.h>
 #include <SD.h>
 #include "AS5048A.h"
-#include "../utils/utils.h"
-#include "../Server/Server.h"
-
+#include "utils.h"
 #include "debugging.h"
+#include "ServerMQTT.h"
+
 
 const double SEALEVELPRESSURE_HPA = 1013.25;
 
@@ -37,24 +39,25 @@ public:
     Data();
 };
 
-template<typename sensor_t>
-class Sensor {
+template<typename my_sensor_t>
+class Sensors {
 private:
-    sensor_t s;
+    my_sensor_t s;
 public:
-    Sensor();
+    Sensors();
     void setup();
     void get_data(Data data);
 };
 
-template<typename sensor_t> Sensor<sensor_t>::Sensor(){
+template<typename sensor_t> Sensors<sensor_t>::Sensors(){
     setup();
 }
+
 
 // setters
 template<>
 inline
-void Sensor<RTC_DS1307>::setup() {
+void Sensors<RTC_DS1307>::setup() {
 
     clientConnect();
 
@@ -75,14 +78,15 @@ void Sensor<RTC_DS1307>::setup() {
 
 template<>
 inline
-void Sensor<AS5048A>::setup() {
+void Sensors<AS5048A>::setup() {
+    s = AS5048A(SS, true);
     s.begin();
     Serial.println("CORRECTLY INITIALIZED: MAGNETIC ENCODER");
 }
 
 template<>
 inline
-void Sensor<Adafruit_ADS1115>::setup() {
+void Sensors<Adafruit_ADS1115>::setup() {
 
     clientConnect();
 
@@ -101,7 +105,7 @@ void Sensor<Adafruit_ADS1115>::setup() {
 
 template<>
 inline
-void Sensor<Adafruit_BME280>::setup() {
+void Sensors<Adafruit_BME280>::setup() {
 
     int status;
 
@@ -134,7 +138,7 @@ void Sensor<Adafruit_BME280>::setup() {
 
 template<>
 inline
-void Sensor<Adafruit_BME280>::get_data(Data data) {
+void Sensors<Adafruit_BME280>::get_data(Data data) {
     data.temperature = s.readTemperature();
     data.humidity = s.readHumidity();
     data.pressure = s.readPressure() / 100.0F;
@@ -142,8 +146,7 @@ void Sensor<Adafruit_BME280>::get_data(Data data) {
 
 template<>
 inline
-void Sensor<Adafruit_ADS1115>::get_data(Data data) {
-    double wind_speed = 0.0;
+void Sensors<Adafruit_ADS1115>::get_data(Data data) {
     int16_t val = s.readADC_SingleEnded(0);
     float voltage = 0.0;
 
@@ -172,20 +175,17 @@ void Sensor<Adafruit_ADS1115>::get_data(Data data) {
 
 template<>
 inline
-void Sensor<AS5048A>::get_data(Data data) {
+void Sensors<AS5048A>::get_data(Data data) {
     data.windDirection = (int)s.getRotationInDegrees();
 }
 
 template<>
 inline
-void Sensor<RTC_DS1307>::get_data(Data data){
+void Sensors<RTC_DS1307>::get_data(Data data){
     data.timestamp = s.now();
 }
 
-
-
-
-
+# endif
 
 
 

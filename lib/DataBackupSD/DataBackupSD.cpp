@@ -7,7 +7,7 @@ SDHandler::SDHandler(Data &data) {
     }
 }
 
-void SDHandler::setLog(Data &data, Sensor<RTC_DS1307, void> rtc) {
+void SDHandler::setLog(Data &data, Sensors<RTC_DS1307, void> rtc) {
     // the file has the timestamp as name
     rtc.get_data(data);
     data.log_file += String(data.timestamp.year(), DEC) + "_" +
@@ -19,7 +19,7 @@ void SDHandler::setLog(Data &data, Sensor<RTC_DS1307, void> rtc) {
 }
 
 
-void SDHandler::write_sd(Data data, Sensor<RTC_DS1307, void> rtc) {
+void SDHandler::write_sd(Data data, Sensors<RTC_DS1307, void> rtc) {
 
     setLog(data, rtc);
 

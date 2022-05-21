@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef SARA_UTILS_H
-#define SARA_UTILS_H
-
 #include <iostream>
 #include <Arduino.h>
 
@@ -17,6 +14,3 @@ void loop_infinite();
 template<> void get_str<int>(int val, char buff[8]){
     String(val).toCharArray(buff, 8);
 }
-
-
-#endif //SARA_UTILS_H

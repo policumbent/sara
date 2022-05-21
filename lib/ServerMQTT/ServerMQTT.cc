@@ -1,9 +1,8 @@
-#include "Server.h"
-#include "../Led/Led.h"
-#include "../Sensor/Sensor.h"
+#include "ServerMQTT.h"
+#include "Led.h"
 
 // Wifi and Mqtt credentials
-#include "credentials.h"
+#include "../credentials/credentials.h"
 
 // client communication
 WiFiClientSecure espClient;
@@ -50,12 +49,12 @@ void clientPublish(const char *topic, const char *payload) {
 }
 
 void clientConnect() {
-#if WIFI_DEBUG
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
-#endif
+    if (check<WIFI_DEBUG>()) {
+        if (!client.connected()) {
+            reconnect();
+        }
+        client.loop();
+    }
 }
 
 void callback(char *topic, byte *message, unsigned int length) {
@@ -107,71 +106,71 @@ void reconnect() {
   }
 }
 
-void publishMQTT(Data data) {
+void publishMQTT(Data *data) {
 
     led_on();
 
     Serial.println("\n- - - - - MQTT DATA - - - - -\n");
 
     // TIME
-    Serial.print(data.timestamp.year(), DEC);
+    Serial.print(data->timestamp.year(), DEC);
     Serial.print("/");
-    Serial.print(data.timestamp.month(), DEC);
+    Serial.print(data->timestamp.month(), DEC);
     Serial.print("/");
-    Serial.print(data.timestamp.day(), DEC);
+    Serial.print(data->timestamp.day(), DEC);
     Serial.print("  ");
-    Serial.print(data.timestamp.hour(), DEC);
+    Serial.print(data->timestamp.hour(), DEC);
     Serial.print(":");
-    Serial.print(data.timestamp.minute(), DEC);
+    Serial.print(data->timestamp.minute(), DEC);
     Serial.print(":");
-    Serial.println(data.timestamp.second(), DEC);
+    Serial.println(data->timestamp.second(), DEC);
 
     // Convert the value to a char array
     char buffer[8];
-    dtostrf(data.temperature, 1, 2, buffer);
+    dtostrf(data->temperature, 1, 2, buffer);
     Serial.print("Temperature: ");
     Serial.println(buffer);
     if (check<WIFI_DEBUG>()){
         client.publish("weather_stations/ws1/temperature", buffer);
     }
 
-  // Convert the value to a char array
-  dtostrf(data.humidity, 1, 2, buffer);
-  Serial.print("Humidity: ");
-  Serial.println(buffer);
+    // Convert the value to a char array
+    dtostrf(data->humidity, 1, 2, buffer);
+    Serial.print("Humidity: ");
+    Serial.println(buffer);
 
-  if (check<WIFI_DEBUG>()){
-      client.publish("weather_stations/ws1/humidity", buffer);
-  }
+    if (check<WIFI_DEBUG>()){
+        client.publish("weather_stations/ws1/humidity", buffer);
+    }
 
-  // Convert the value to a char array
-  dtostrf(data.pressure, 1, 2, buffer);
-  Serial.print("Pressure: ");
-  Serial.println(buffer);
+    // Convert the value to a char array
+    dtostrf(data->pressure, 1, 2, buffer);
+    Serial.print("Pressure: ");
+    Serial.println(buffer);
 
-  if (check<WIFI_DEBUG>()) {
-      client.publish("weather_stations/ws1/pressure", buffer);
-  }
+    if (check<WIFI_DEBUG>()) {
+        client.publish("weather_stations/ws1/pressure", buffer);
+    }
 
-  // Convert the value to a char array
-  dtostrf(data.windSpeed, 1, 2, buffer);
-  Serial.print("Wind Speed: ");
-  Serial.println(buffer);
+    // Convert the value to a char array
+    dtostrf(data->windSpeed, 1, 2, buffer);
+    Serial.print("Wind Speed: ");
+    Serial.println(buffer);
 
-  if (check<WIFI_DEBUG>()){
-      client.publish("weather_stations/ws1/wind_speed", buffer);
-  }
+    if (check<WIFI_DEBUG>()){
+        client.publish("weather_stations/ws1/wind_speed", buffer);
+    }
 
-  // Convert the value to a char array
-  String(data.windDirection).toCharArray(buffer, 8);
-  Serial.print("Wind Direction: ");
-  Serial.println(buffer);
+    // Convert the value to a char array
+    String(data->windDirection).toCharArray(buffer, 8);
+    Serial.print("Wind Direction: ");
+    Serial.println(buffer);
 
-  if (check<WIFI_DEBUG>()){
-      client.publish("weather_stations/ws1/wind_direction", buffer);
-  }
+    if (check<WIFI_DEBUG>()){
+        client.publish("weather_stations/ws1/wind_direction", buffer);
+    }
 
-  led_off();
+    led_off();
 
-  Serial.println("\n- - - - - - - - - - - - - - -\n");
+    Serial.println("\n- - - - - - - - - - - - - - -\n");
 }
