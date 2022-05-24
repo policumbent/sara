@@ -3,14 +3,7 @@
 #include <iostream>
 #include <Arduino.h>
 
-template<typename T>
-void get_str(T val, char buff[8]){
-    dtostrf(val, 1, 2, buff);
-}
+void get_str(double val, char buff[8]);
+void get_str(int val, char buff[8]);
 
 void loop_infinite();
-
-
-template<> void get_str<int>(int val, char buff[8]){
-    String(val).toCharArray(buff, 8);
-}

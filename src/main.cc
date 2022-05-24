@@ -1,14 +1,11 @@
 #include <Arduino.h>
-#include <PubSubClient.h>
 #include <RTClib.h>
 #include <SPI.h>
-#include <WiFiClientSecure.h>
 #include <Wire.h>
-#include <cstdio>
 #include <iostream>
-#include "ServerMQTT.h"
-#include "DataBackupSD.h"
 #include "Sensors.h"
+#include "DataBackupSD.h"
+
 
 // todo: try to understand how the library system in platformio works and make it function
 
@@ -16,10 +13,10 @@ unsigned long now;
 unsigned long lastMsg;
 
 
-Data *getData() {
+Data &getData() {
     try {
         static Data data = Data();
-        return &data;
+        return data;
     }catch (const std::exception &ex) {
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
@@ -38,7 +35,7 @@ Sensors<Adafruit_BME280> &getBme() {
 
 Sensors<AS5048A> &getAngleSensor() {
     try {
-        static Sensors<AS5048A> angleSensor = Sensors<AS5048A>();
+        static Sensors<AS5048A> angleSensor = Sensors<AS5048A>(SS, true);
         return angleSensor;
     }catch (const std::exception &ex) {
         Serial.println(ex.what());
@@ -68,7 +65,7 @@ Sensors<RTC_DS1307> &getRtc() {
 
 SDHandler &getSdHandler(){
     try {
-        static SDHandler sd_handler = SDHandler(*getData());
+        static SDHandler sd_handler = SDHandler(getData());
         return sd_handler;
     }catch (const std::exception &ex) {
         Serial.println(ex.what());
@@ -86,8 +83,10 @@ void setup() {
 
   // client = PubSubClient(espClient);
 
-  init_wifi();
-  init_client();
+  if(check<WIFI_DEBUG>()){
+      init_wifi();
+      init_client();
+  }
 
   pinMode(LED, OUTPUT);
 }
@@ -101,33 +100,33 @@ void loop() {
       lastMsg = now;
 
       if (check<BME_DEBUG>()){
-          getBme().get_data(*getData());
+          getBme().get_data(getData());
       }else {
-          getData()->temperature = 0.0;
-          getData()->pressure = 0.0;
-          getData()->humidity = 0.0;
+          getData().temperature = 0.0;
+          getData().pressure = 0.0;
+          getData().humidity = 0.0;
       }
       if (check<ANEMOMETER_DEBUG>()){
-          getAds().get_data(*getData());
+          getAds().get_data(getData());
       }else {
-          getData()->windSpeed = 0.0;
+          getData().windSpeed = 0.0;
       }
 
       if (check<MAGNETOMETER_DEBUG>()){
-          getAngleSensor().get_data(*getData());
+          getAngleSensor().get_data(getData());
       }else {
-          getData()->windDirection = 0.0;
+          getData().windDirection = 0.0;
       }
 
       if (check<RTC_DEBUG>()){
-          getRtc().get_data(*getData());
+          getRtc().get_data(getData());
       }else {
-          getData()->windDirection = 0.0;
+          getData().windDirection = 0.0;
       }
 
       publishMQTT(getData());
       if(check<SD_DEBUG>()){
-        getSdHandler().write_sd(*getData(), getRtc());
+        getSdHandler().write_sd(getData(), getRtc());
       }
   }
 }

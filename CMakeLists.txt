@@ -30,4 +30,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(Z_DUMMY_TARGET ${SRC_LIST} lib/DataBackupSD/DataBackupSD.cpp lib/DataBackupSD/DataBackupSD.h lib/utils/utils.h lib/utils/utils.cpp)
+add_executable(Z_DUMMY_TARGET ${SRC_LIST} src/DataBackupSD.cpp include/DataBackupSD.h lib/utils/utils.h lib/utils/utils.cpp include/data.h)

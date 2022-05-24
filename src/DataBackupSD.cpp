@@ -1,16 +1,18 @@
 #include "DataBackupSD.h"
+#include "../lib/utils/utils.h"
 
 
 SDHandler::SDHandler(Data &data) {
-    if (check<SD_DEBUG>())
+    if (check<SD_DEBUG>()){
         setup_sd(data);
     }
 }
 
-void SDHandler::setLog(Data &data, Sensors<RTC_DS1307, void> rtc) {
+void SDHandler::setLog(Data &data, Sensors<RTC_DS1307> rtc) {
     // the file has the timestamp as name
     rtc.get_data(data);
-    data.log_file += String(data.timestamp.year(), DEC) + "_" +
+    data.log_file =  "/" +
+                     String(data.timestamp.year(), DEC) + "_" +
                      String(data.timestamp.month(), DEC) + "_" +
                      String(data.timestamp.day(), DEC) + "__";
     data.log_file += String(data.timestamp.hour(), DEC) + "_" +
@@ -19,7 +21,7 @@ void SDHandler::setLog(Data &data, Sensors<RTC_DS1307, void> rtc) {
 }
 
 
-void SDHandler::write_sd(Data data, Sensors<RTC_DS1307, void> rtc) {
+void SDHandler::write_sd(Data &data, Sensors<RTC_DS1307> rtc) {
 
     setLog(data, rtc);
 
