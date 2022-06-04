@@ -2,12 +2,8 @@
 #include <RTClib.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <iostream>
 #include "Sensors.h"
 #include "DataBackupSD.h"
-
-
-// todo: try to understand how the library system in platformio works and make it function
 
 unsigned long now;
 unsigned long lastMsg;
@@ -81,6 +77,21 @@ void setup() {
   printMqttInfo();
   printWifiInfo();
 
+  if(check<RTC_DEBUG>()){
+      getRtc();
+  }
+  if(check<BME_DEBUG>()){
+      getBme();
+  }
+  if(check<ANEMOMETER_DEBUG>()){
+      getAds();
+  }
+  if(check<MAGNETOMETER_DEBUG>()){
+      getAngleSensor();
+  }
+  if(check<SD_DEBUG>()){
+      getSdHandler();
+  }
   // client = PubSubClient(espClient);
 
   if(check<WIFI_DEBUG>()){

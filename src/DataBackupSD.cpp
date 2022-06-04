@@ -1,6 +1,8 @@
 #include "DataBackupSD.h"
 #include "../lib/utils/utils.h"
 
+SPIClass spi = SPIClass(VSPI);
+
 
 SDHandler::SDHandler(Data &data) {
     if (check<SD_DEBUG>()){
@@ -9,7 +11,7 @@ SDHandler::SDHandler(Data &data) {
 }
 
 void SDHandler::setLog(Data &data, Sensors<RTC_DS1307> rtc) {
-    // the file has the timestamp as name
+
     rtc.get_data(data);
     data.log_file =  "/" +
                      String(data.timestamp.year(), DEC) + "_" +
@@ -18,12 +20,16 @@ void SDHandler::setLog(Data &data, Sensors<RTC_DS1307> rtc) {
     data.log_file += String(data.timestamp.hour(), DEC) + "_" +
                      String(data.timestamp.minute(), DEC) + "_" +
                      String(data.timestamp.second(), DEC) + ".csv";
+
+    log_set = true;
 }
 
 
 void SDHandler::write_sd(Data &data, Sensors<RTC_DS1307> rtc) {
 
-    setLog(data, rtc);
+    if(not log_set){
+        setLog(data, rtc);
+    }
 
     // printing on file
     data_log = SD.open(data.log_file, FILE_APPEND);
@@ -67,6 +73,8 @@ void SDHandler::write_sd(Data &data, Sensors<RTC_DS1307> rtc) {
 void SDHandler::setup_sd(Data &data) {
 
     auto open_mode = FILE_WRITE;
+
+    log_set = false;
 
     if(!check<RTC_DEBUG>()){
         // in case the rtc is not implemented it prints everything in the same file(we

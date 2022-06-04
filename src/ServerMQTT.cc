@@ -93,10 +93,6 @@ void publishMQTT(Data &data) {
 
     led_on();
 
-    Serial.print("\0");
-    Serial.print("\b\b\b\b\b WOOOOO\n\n\n");
-
-
     Serial.println("\n- - - - - MQTT DATA - - - - -\n");
     // TIME
     Serial.print(data.timestamp.year(), DEC);

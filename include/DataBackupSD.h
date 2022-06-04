@@ -11,10 +11,11 @@
 class SDHandler{
 private:
     File data_log;
+    bool log_set;
 public:
     explicit SDHandler(Data &);
     void write_sd(Data&, Sensors<RTC_DS1307>);
-    static void setLog(Data&, Sensors<RTC_DS1307>);
+    void setLog(Data&, Sensors<RTC_DS1307>);
 
 private:
     void setup_sd(Data &);
