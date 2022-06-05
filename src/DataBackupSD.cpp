@@ -73,7 +73,7 @@ void SDHandler::write_sd(Data &data, Sensors<RTC_DS1307> rtc) {
 void SDHandler::setup_sd(Data &data) {
 
     auto open_mode = FILE_WRITE;
-
+    int counter = 10;
     log_set = false;
 
     if(!check<RTC_DEBUG>()){
@@ -81,16 +81,22 @@ void SDHandler::setup_sd(Data &data) {
         // can then use another program to separate the CSV files)
         data.log_file += "data.csv";
     }
+    if(!check<WIFI_DEBUG>()) {
+        clientConnect();
+    }
 
-    clientConnect();
+    // setup pins
+    pinMode(2, OUTPUT);
 
-    if (!SD.begin(2, SPI)) {
+    while(!SD.begin(2, SPI) && counter) {
         Serial.println("Impossible to connect SD reader");
 
         if(!check<WIFI_DEBUG>()) {
             clientPublish("SENSORE SD CARD: ", "NOT WORKING");
         }
 
+        delay(100);
+        counter--;
     }
 
     uint8_t cardType = SD.cardType();

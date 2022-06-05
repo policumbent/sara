@@ -177,7 +177,7 @@ void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
 template<>
 inline
 void Sensors<AS5048A>::get_data(Data& data) {
-    data.windDirection = (int) s->getRotationInDegrees();
+    data.windDirection = (double) s->getRotationInDegrees();
 }
 
 template<>

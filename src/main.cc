@@ -14,6 +14,7 @@ Data &getData() {
         static Data data = Data();
         return data;
     }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
     }
@@ -24,6 +25,7 @@ Sensors<Adafruit_BME280> &getBme() {
         static Sensors<Adafruit_BME280> bme = Sensors<Adafruit_BME280>();
         return bme;
     }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
     }
@@ -31,9 +33,10 @@ Sensors<Adafruit_BME280> &getBme() {
 
 Sensors<AS5048A> &getAngleSensor() {
     try {
-        static Sensors<AS5048A> angleSensor = Sensors<AS5048A>(SS, true);
+        static Sensors<AS5048A> angleSensor = Sensors<AS5048A>(SS, false);
         return angleSensor;
     }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
     }
@@ -44,6 +47,7 @@ Sensors<Adafruit_ADS1115> &getAds() {
         static Sensors<Adafruit_ADS1115> ads = Sensors<Adafruit_ADS1115>();
         return ads;
     }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
     }
@@ -54,6 +58,7 @@ Sensors<RTC_DS1307> &getRtc() {
         static Sensors<RTC_DS1307> rtc = Sensors<RTC_DS1307>();
         return rtc;
     }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
     }
@@ -64,6 +69,7 @@ SDHandler &getSdHandler(){
         static SDHandler sd_handler = SDHandler(getData());
         return sd_handler;
     }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
     }

@@ -2,7 +2,7 @@
 
 
 const bool WIFI_DEBUG         = false;
-const bool SD_DEBUG           = true;
+const bool SD_DEBUG           = false;
 const bool MAGNETOMETER_DEBUG = true;
 const bool BME_DEBUG          = true;
 const bool ADC_DEBUG          = true;
