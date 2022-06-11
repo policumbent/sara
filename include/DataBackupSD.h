@@ -13,10 +13,10 @@ private:
     File data_log;
     bool log_set;
 public:
-    explicit SDHandler(Data &);
-    void write_sd(Data&, Sensors<RTC_DS1307>);
-    void setLog(Data&, Sensors<RTC_DS1307>);
+    explicit SDHandler(Data &, int cs);
+    void write_sd(Data&, Sensors<RTC_DS1307> &);
+    void setLog(Data&, Sensors<RTC_DS1307> &);
 
 private:
-    void setup_sd(Data &);
+    void setup_sd(Data &, int cs);
 };

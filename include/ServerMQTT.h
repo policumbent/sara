@@ -11,12 +11,14 @@
 
 #include <debugging.h>
 #include "data.h"
+#include "credentials.h"
 
 
 void clientPublish(const char *topic, const char *payload);
 void clientConnect();
 
 void publishMQTT(Data &data);
+
 
 void init_wifi();
 void init_client();

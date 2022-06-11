@@ -1,16 +1,38 @@
-#include "DataBackupSD.h"
-#include "../lib/utils/utils.h"
-
-SPIClass vspi = SPIClass(VSPI);
+#include "DataBackupFlash.h"
+#include "utils.h"
 
 
-SDHandler::SDHandler(Data &data, int cs) {
-    if (check<SD_DEBUG>()){
-        setup_sd(data, cs);
+FlashHandler::FlashHandler(Data &data) {
+    auto open_mode = FILE_WRITE;
+    log_set = false;
+    data.log_file = "/data.csv";
+
+    if(!SPIFFS.begin(true)){
+        Serial.println("Impossible to access flash");
+        while(1);
     }
+
+    if (!SPIFFS.exists(data.log_file)) {
+        Serial.println("The file ./data.csv doesn't exist --- CREATING...");
+    } else {
+        open_mode = FILE_APPEND;
+    }
+    data_log = SPIFFS.open(data.log_file, open_mode);
+
+    if (!data_log) {
+        Serial.print("Error opening the file: ");
+        Serial.print(data_log);
+        data_log.close();
+        loop_infinite();
+    }
+
+    data_log.print("timeStamp, Temperature, Pressure, Humidity, Wind_Speed, "
+                   "Wind_Direction \n");
+    data_log.close();
+
 }
 
-void SDHandler::setLog(Data &data, Sensors<RTC_DS1307> &rtc) {
+void FlashHandler::setLog(Data &data, Sensors<RTC_DS1307> &rtc) {
 
     rtc.get_data(data);
     data.log_file =  "/" +
@@ -21,9 +43,8 @@ void SDHandler::setLog(Data &data, Sensors<RTC_DS1307> &rtc) {
                      String(data.timestamp.minute(), DEC) + "_" +
                      String(data.timestamp.second(), DEC) + ".csv";
 
-
     // the insertion of the header is done here in order not to access the RTC at setup time
-    data_log = SD.open(data.log_file, FILE_WRITE);
+    data_log = SPIFFS.open(data.log_file, FILE_WRITE);
 
     if (!data_log) {
         Serial.print("Error opening the file: ");
@@ -40,14 +61,14 @@ void SDHandler::setLog(Data &data, Sensors<RTC_DS1307> &rtc) {
 }
 
 
-void SDHandler::write_sd(Data &data, Sensors<RTC_DS1307> &rtc) {
+void FlashHandler::write_flash(Data &data, Sensors<RTC_DS1307>& rtc) {
 
     if(not log_set){
         setLog(data, rtc);
     }
 
     // printing on file
-    data_log = SD.open(data.log_file, FILE_APPEND);
+    data_log = SPIFFS.open(data.log_file, FILE_APPEND);
     String data_to_print; // ---> this string should contain all the information
     // and write just once on the file --> this should
     // reduce errors
@@ -82,59 +103,5 @@ void SDHandler::write_sd(Data &data, Sensors<RTC_DS1307> &rtc) {
 
     data_log.println(data_to_print);
 
-    data_log.close();
-}
-
-void SDHandler::setup_sd(Data &data, int cs) {
-
-    auto open_mode = FILE_WRITE;
-    int counter = 10;
-    log_set = false;
-
-    data.log_file = "/data.csv";
-
-    if(!check<WIFI_DEBUG>()) {
-        clientConnect();
-    }
-
-    // setup pins
-    pinMode(cs, OUTPUT);
-
-    while(!SD.begin(cs, SPI, 3000000) && counter) {
-        Serial.println("Impossible to connect SD reader");
-
-        if(!check<WIFI_DEBUG>()) {
-            clientPublish("SENSORE SD CARD: ", "NOT WORKING");
-        }
-        delay(200);
-        //counter--;
-    }
-
-    uint8_t cardType = SD.cardType();
-
-    if (cardType == CARD_NONE) {
-        Serial.println("No SD card attached");
-        loop_infinite();
-    }
-
-    Serial.println("CORRECTLY INITIALIZED: SD CARD");
-
-    if (!SD.exists(data.log_file)) {
-        Serial.println("The file ./data.csv doesn't exist --- CREATING...");
-    } else {
-        open_mode = FILE_APPEND;
-    }
-
-    data_log = SD.open(data.log_file, open_mode);
-
-    if (!data_log) {
-        Serial.print("Error opening the file: ");
-        Serial.print(data_log);
-        data_log.close();
-        loop_infinite();
-    }
-
-    data_log.print("timeStamp, Temperature, Pressure, Humidity, Wind_Speed, "
-                   "Wind_Direction \n");
     data_log.close();
 }

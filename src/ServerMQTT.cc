@@ -4,17 +4,24 @@
 // client communication
 WiFiClientSecure espClient;
 PubSubClient client = PubSubClient(espClient);
+Info cred = Info();
 
+void printMqttInfo() {
+    Serial.println(cred.mqtt_pass);
+    Serial.println(cred.mqtt_server);
+}
 
-// Wifi and Mqtt credentials
-#include "credentials.h"
+void printWifiInfo() {
+    Serial.println(cred.ssid);
+    Serial.println(cred.password);
+}
 
 void init_wifi() {
   Serial.println();
   Serial.print("Connecting to ");
-  //  Serial.println(SSID);
+  //  Serial.println(ssid);
   //
-  WiFi.begin(SSID, PASSWORD);
+  WiFi.begin(cred.ssid.c_str(), cred.password.c_str());
 
   while (WiFiClass::status() != WL_CONNECTED) {
     delay(500);
@@ -31,18 +38,8 @@ void init_client() {
   // TODO: aggiungere la verifica del certificato
   espClient.setInsecure();
 
-  client.setServer(MQTT_SERVER, 8883);
+  client.setServer(cred.mqtt_server.c_str(), 8883);
   client.setCallback(callback);
-}
-
-void printMqttInfo() {
-  Serial.println(MQTT_PASSWORD);
-  Serial.println(MQTT_SERVER);
-}
-
-void printWifiInfo() {
-  Serial.println(SSID);
-  Serial.println(PASSWORD);
 }
 
 void clientPublish(const char *topic, const char *payload) {
@@ -163,7 +160,7 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("ESP8266Client", MQTT_USERNAME, MQTT_PASSWORD)) {
+    if (client.connect("ESP8266Client", cred.mqtt_usr.c_str(), cred.mqtt_pass.c_str())) {
       Serial.println("connected");
       // Subscribe
       // client.subscribe("test/led");

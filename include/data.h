@@ -11,6 +11,8 @@ public:
     long lastMsg = 0;
     char msg[50] = {};
 
+
+
 public:
     Data();
 };

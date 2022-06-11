@@ -30,4 +30,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(Z_DUMMY_TARGET ${SRC_LIST} src/DataBackupSD.cpp include/DataBackupSD.h lib/utils/utils.h lib/utils/utils.cpp include/data.h test/test_sara_embedded/bootstrap.cpp test/test_sara_embedded/testData.cpp)
+add_executable(Z_DUMMY_TARGET ${SRC_LIST} src/DataBackupSD.cpp include/DataBackupSD.h lib/utils/utils.h lib/utils/utils.cpp include/data.h test/test_sara_embedded/bootstrap.cpp test/test_sara_embedded/testData.cpp src/DataBackupFlash.cpp spiff_interaction_files/read_flash_files/reader.cpp spiff_interaction_files/publish_files_webserver/publish_webserver.cpp spiff_interaction_files/write_credential_files/write_credentials_flash.cpp spiff_interaction_files/delete_all_files/flush.cpp include/credentials.h src/Credentials.cpp)

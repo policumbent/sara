@@ -79,6 +79,7 @@ void Sensors<AS5048A>::setup(uint8_t arg_cs, bool debug) {
     s = new AS5048A(arg_cs, debug);
     s->begin();
     Serial.println("CORRECTLY INITIALIZED: MAGNETIC ENCODER");
+
 }
 
 template<>

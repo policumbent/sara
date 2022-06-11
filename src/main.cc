@@ -4,10 +4,13 @@
 #include <Wire.h>
 #include "Sensors.h"
 #include "DataBackupSD.h"
+#include "DataBackupFlash.h"
 
 unsigned long now;
 unsigned long lastMsg;
 
+unsigned int cs_sd = 2;
+unsigned int cs_mag = 5;
 
 Data &getData() {
     try {
@@ -33,7 +36,7 @@ Sensors<Adafruit_BME280> &getBme() {
 
 Sensors<AS5048A> &getAngleSensor() {
     try {
-        static Sensors<AS5048A> angleSensor = Sensors<AS5048A>(SS, false);
+        static Sensors<AS5048A> angleSensor = Sensors<AS5048A>(cs_mag, false);
         return angleSensor;
     }catch (const std::exception &ex) {
         Serial.println("EXCEPTION");
@@ -66,7 +69,7 @@ Sensors<RTC_DS1307> &getRtc() {
 
 SDHandler &getSdHandler(){
     try {
-        static SDHandler sd_handler = SDHandler(getData());
+        static SDHandler sd_handler = SDHandler(getData(), cs_sd);
         return sd_handler;
     }catch (const std::exception &ex) {
         Serial.println("EXCEPTION");
@@ -75,37 +78,73 @@ SDHandler &getSdHandler(){
     }
 }
 
+FlashHandler &getFlashHandler(){
+    try {
+        static FlashHandler flash_handler = FlashHandler(getData());
+        return flash_handler;
+    }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+
 void setup() {
-  Serial.begin(115200);
+    Serial.begin(115200);
 
-  Serial.println("BEGIN");
+    Serial.println("BEGIN");
 
-  printMqttInfo();
-  printWifiInfo();
+    pinMode(cs_sd, OUTPUT);
+    pinMode(cs_mag, OUTPUT);
 
-  if(check<RTC_DEBUG>()){
-      getRtc();
-  }
-  if(check<BME_DEBUG>()){
-      getBme();
-  }
-  if(check<ANEMOMETER_DEBUG>()){
-      getAds();
-  }
-  if(check<MAGNETOMETER_DEBUG>()){
+    digitalWrite(cs_sd, LOW);
+    digitalWrite(cs_mag, LOW);
+
+    delay(10);
+
+    if(check<RTC_DEBUG>()){
+        getRtc();
+    }
+
+    delay(10);
+
+    if(check<BME_DEBUG>()){
+        getBme();
+    }
+
+    delay(10);
+
+    if(check<ANEMOMETER_DEBUG>()){
+        getAds();
+    }
+
+    digitalWrite(cs_mag, LOW);
+
+    delay(10);
+
+    // the SD must be initialized before the MAGNETIC ENCODER
+    if(check<SD_DEBUG>()){
+        getSdHandler();
+    }else{
+        getFlashHandler();
+    }
+    digitalWrite(cs_sd, LOW);
+
+    delay(10);
+
+    if(check<MAGNETOMETER_DEBUG>()){
       getAngleSensor();
-  }
-  if(check<SD_DEBUG>()){
-      getSdHandler();
-  }
-  // client = PubSubClient(espClient);
+    }
+    // -----------------------------------------------------
 
-  if(check<WIFI_DEBUG>()){
-      init_wifi();
-      init_client();
-  }
+    // client = PubSubClient(espClient);
 
-  pinMode(LED, OUTPUT);
+    if(check<WIFI_DEBUG>()){
+        init_wifi();
+        init_client();
+    }
+
+    pinMode(LED, OUTPUT);
 }
 
 void loop() {
@@ -129,21 +168,28 @@ void loop() {
           getData().windSpeed = 0.0;
       }
 
-      if (check<MAGNETOMETER_DEBUG>()){
-          getAngleSensor().get_data(getData());
-      }else {
-          getData().windDirection = 0.0;
-      }
-
       if (check<RTC_DEBUG>()){
           getRtc().get_data(getData());
       }else {
           getData().windDirection = 0.0;
       }
 
+
+      if (check<MAGNETOMETER_DEBUG>()){
+          getAngleSensor().get_data(getData());
+      }else {
+          getData().windDirection = 0.0;
+      }
+
+      delay(100);
+
       publishMQTT(getData());
       if(check<SD_DEBUG>()){
         getSdHandler().write_sd(getData(), getRtc());
+      }else{
+          getFlashHandler().write_flash(getData(), getRtc());
       }
+
+      delay(100);
   }
 }

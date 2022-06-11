@@ -1,10 +1,14 @@
-#pragma once
+# pragma once
+#include <SPIFFS.h>
 
-#include <Arduino.h>
+class Info {
+public:
+    String ssid;
+    String password;
+    String mqtt_server;
+    String mqtt_usr;
+    String mqtt_pass;
 
-const char *SSID = "";
-const char *PASSWORD = "";
-
-const char *MQTT_USERNAME = "";
-const char *MQTT_PASSWORD = "";
-const char *MQTT_SERVER = "";
+public:
+    Info();
+};
