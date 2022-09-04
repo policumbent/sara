@@ -5,6 +5,14 @@
 #include "Sensors.h"
 #include "DataBackupSD.h"
 #include "DataBackupFlash.h"
+#include "EpaperDisplay.h"
+
+#ifdef DEBUG
+#include "Plotter.h"
+Plotter p;
+float wind_speed = 0.0;
+#endif
+
 
 unsigned long now;
 unsigned long lastMsg;
@@ -117,7 +125,6 @@ void setup() {
     if(check<ANEMOMETER_DEBUG>()){
         getAds();
     }
-
     digitalWrite(cs_mag, LOW);
 
     delay(10);
@@ -135,16 +142,26 @@ void setup() {
     if(check<MAGNETOMETER_DEBUG>()){
       getAngleSensor();
     }
-    // -----------------------------------------------------
 
-    // client = PubSubClient(espClient);
+    if(check<EPAPER_DEBUG>()){
+        init_display();
+    }
 
     if(check<WIFI_DEBUG>()){
         init_wifi();
         init_client();
     }
+
+#ifdef DEBUG
+    p.Begin();
+    p.AddTimeGraph("Wind Speed", 1500, "speed", wind_speed);
+#endif
+
+
     pinMode(LED, OUTPUT);
+#ifndef DEBUG
     Serial.println("SETUP COMPLETED");
+#endif
 }
 
 void loop() {
@@ -162,6 +179,7 @@ void loop() {
           getData().pressure = 0.0;
           getData().humidity = 0.0;
       }
+
       if (check<ANEMOMETER_DEBUG>()){
           getAds().get_data(getData());
       }else {
@@ -174,7 +192,6 @@ void loop() {
           getData().windDirection = 0.0;
       }
 
-
       if (check<MAGNETOMETER_DEBUG>()){
           getAngleSensor().get_data(getData());
       }else {
@@ -184,12 +201,22 @@ void loop() {
       delay(100);
 
       publishMQTT(getData());
+
       if(check<SD_DEBUG>()){
         getSdHandler().write_sd(getData(), getRtc());
       }else if(check<SPIFFS_DEBUG>()){
           getFlashHandler().write_flash(getData(), getRtc());
       }
 
-      delay(100);
+      if(check<EPAPER_DEBUG>()){
+          display_data(getData());
+      }
+
   }
+
+#ifdef DEBUG
+  wind_speed = getData().windSpeed;
+  p.Plot();
+#endif
+  delay(100);
 }

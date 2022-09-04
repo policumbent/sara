@@ -10,7 +10,7 @@
 #include "AS5048A.h"
 #include "utils.h"
 #include "debugging.h"
-#include "data.h"
+#include "Data.h"
 #include "ServerMQTT.h"
 
 
@@ -153,9 +153,10 @@ void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
     // voltage = (val * analog_to_volt_conv);
     voltage = s->computeVolts(val);
 
+#ifndef DEBUG
     Serial.println(val);
     Serial.println(voltage);
-
+#endif
     if(check<WIFI_DEBUG>()) {
         char buffer[8];
         dtostrf(voltage, 1, 2, buffer);

@@ -89,7 +89,7 @@ void callback(char *topic, byte *message, unsigned int length) {
 void publishMQTT(Data &data) {
 
     led_on();
-
+#ifndef DEBUG
     Serial.println("\n- - - - - MQTT DATA - - - - -\n");
     // TIME
     Serial.print(data.timestamp.year(), DEC);
@@ -103,55 +103,64 @@ void publishMQTT(Data &data) {
     Serial.print(data.timestamp.minute(), DEC);
     Serial.print(":");
     Serial.println(data.timestamp.second(), DEC);
-
+#endif
     // Convert the value to a char array
     char buffer[8];
     dtostrf(data.temperature, 1, 2, buffer);
+
+#ifndef DEBUG
     Serial.print("Temperature: ");
     Serial.println(buffer);
+#endif
     if (check<WIFI_DEBUG>()){
         client.publish("weather_stations/ws1/temperature", buffer);
     }
 
     // Convert the value to a char array
     dtostrf(data.humidity, 1, 2, buffer);
+
+#ifndef DEBUG
     Serial.print("Humidity: ");
     Serial.println(buffer);
-
+#endif
     if (check<WIFI_DEBUG>()){
         client.publish("weather_stations/ws1/humidity", buffer);
     }
 
     // Convert the value to a char array
     dtostrf(data.pressure, 1, 2, buffer);
+#ifndef DEBUG
     Serial.print("Pressure: ");
     Serial.println(buffer);
-
+#endif
     if (check<WIFI_DEBUG>()) {
         client.publish("weather_stations/ws1/pressure", buffer);
     }
 
     // Convert the value to a char array
     dtostrf(data.windSpeed, 1, 2, buffer);
+#ifndef DEBUG
     Serial.print("Wind Speed: ");
     Serial.println(buffer);
-
+#endif
     if (check<WIFI_DEBUG>()){
         client.publish("weather_stations/ws1/wind_speed", buffer);
     }
 
     // Convert the value to a char array
     String(data.windDirection).toCharArray(buffer, 8);
+#ifndef DEBUG
     Serial.print("Wind Direction: ");
     Serial.println(buffer);
-
+#endif
     if (check<WIFI_DEBUG>()){
         client.publish("weather_stations/ws1/wind_direction", buffer);
     }
 
     led_off();
-
+#ifndef DEBUG
     Serial.println("\n- - - - - - - - - - - - - - -\n");
+#endif
 }
 
 
