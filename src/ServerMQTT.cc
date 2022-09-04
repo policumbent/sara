@@ -2,7 +2,7 @@
 #include "Led.h"
 
 // client communication
-WiFiClientSecure espClient;
+WiFiClient espClient;
 PubSubClient client = PubSubClient(espClient);
 Info cred = Info();
 
@@ -36,9 +36,9 @@ void init_wifi() {
 
 void init_client() {
   // TODO: aggiungere la verifica del certificato
-  espClient.setInsecure();
+  //espClient.setInsecure();
 
-  client.setServer(cred.mqtt_server.c_str(), 8883);
+  client.setServer(cred.mqtt_server.c_str(), cred.mqtt_port);
   client.setCallback(callback);
 }
 

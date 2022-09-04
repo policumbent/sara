@@ -54,7 +54,6 @@ void Sensors<RTC_DS1307>::setup() {
 
     s = new RTC_DS1307();
 
-    clientConnect();
 
     if (!s->begin()) {
         Serial.println("Problems setting up RTC module");
@@ -63,6 +62,8 @@ void Sensors<RTC_DS1307>::setup() {
         }
         loop_infinite();
     }
+
+    s->adjust(DateTime(F(__DATE__), F(__TIME__)));
 
     Serial.println("CORRECTLY INITIALIZED: RTC");
 
@@ -88,7 +89,6 @@ void Sensors<Adafruit_ADS1115>::setup() {
 
     s = new Adafruit_ADS1115();
 
-    clientConnect();
 
     if (!s->begin(0b1001000)) {
         Serial.println("Failed to initialize ADC.");
@@ -110,8 +110,6 @@ void Sensors<Adafruit_BME280>::setup() {
     int status;
 
     s = new Adafruit_BME280();
-
-    clientConnect();
 
     status = s->begin(0x76); // inizializzazione sensore temperatura
     for (int i = 0x00; !status && i < 0xFF; i++) {

@@ -125,7 +125,7 @@ void setup() {
     // the SD must be initialized before the MAGNETIC ENCODER
     if(check<SD_DEBUG>()){
         getSdHandler();
-    }else{
+    }else if(check<SPIFFS_DEBUG>()){
         getFlashHandler();
     }
     digitalWrite(cs_sd, LOW);
@@ -143,8 +143,8 @@ void setup() {
         init_wifi();
         init_client();
     }
-
     pinMode(LED, OUTPUT);
+    Serial.println("SETUP COMPLETED");
 }
 
 void loop() {
@@ -186,7 +186,7 @@ void loop() {
       publishMQTT(getData());
       if(check<SD_DEBUG>()){
         getSdHandler().write_sd(getData(), getRtc());
-      }else{
+      }else if(check<SPIFFS_DEBUG>()){
           getFlashHandler().write_flash(getData(), getRtc());
       }
 

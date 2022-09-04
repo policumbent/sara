@@ -1,8 +1,9 @@
 #pragma once
 
 
-const bool WIFI_DEBUG         = false;
+const bool WIFI_DEBUG         = true;
 const bool SD_DEBUG           = false;
+const bool SPIFFS_DEBUG       = true;
 const bool MAGNETOMETER_DEBUG = true;
 const bool BME_DEBUG          = true;
 const bool ADC_DEBUG          = true;

@@ -15,5 +15,6 @@ private:
 public:
     explicit FlashHandler(Data &data);
     void write_flash(Data&, Sensors<RTC_DS1307>&);
+    String read_flash(String);
     void setLog(Data&, Sensors<RTC_DS1307>&);
 };
