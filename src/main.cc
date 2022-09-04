@@ -6,6 +6,7 @@
 #include "DataBackupSD.h"
 #include "DataBackupFlash.h"
 #include "EpaperDisplay.h"
+#include "WebServer.h"
 
 #ifdef DEBUG
 #include "Plotter.h"
@@ -150,13 +151,15 @@ void setup() {
     if(check<WIFI_DEBUG>()){
         init_wifi();
         init_client();
+        if(check<WEBSERVER_DEBUG>()){
+            init_webserver(&getData());
+        }
     }
 
 #ifdef DEBUG
     p.Begin();
     p.AddTimeGraph("Wind Speed", 1500, "speed", wind_speed);
 #endif
-
 
     pinMode(LED, OUTPUT);
 #ifndef DEBUG

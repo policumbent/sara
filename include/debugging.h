@@ -9,6 +9,7 @@ const bool ADC_DEBUG          = true;
 const bool RTC_DEBUG          = true;
 const bool ANEMOMETER_DEBUG   = true;
 const bool EPAPER_DEBUG       = false;
+const bool WEBSERVER_DEBUG    = true;
 
 template<const bool c>
 bool check(){return c;}

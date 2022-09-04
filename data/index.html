@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Station</title>
+    <link rel="stylesheet" type="text/css" href="sara.css">
+    <script type="text/javascript" src="bundle.js"></script>
+</head>
+<body>
+    <h1> Weather Station </h1>
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2"> Point value </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td> Temperature </td>
+            <td id="temperature"> 0.0 </td>
+        </tr>
+        <tr>
+            <td> Pressure </td>
+            <td id="pressure"> 0.0 </td>
+        </tr>
+        <tr>
+            <td> Humidity </td>
+            <td id="humidity"> 0.0 </td>
+        </tr>
+        <tr>
+            <td> Wind Speed </td>
+            <td id="wind_speed"> 0.0 </td>
+        </tr>
+        <tr>
+            <td> Wind direction </td>
+            <td id="wind_direction"> 0.0 </td>
+        </tr>
+        </tbody>
+    </table>
+    <div style="margin: auto; position: relative;text-align: center">
+        <form id="get_data">
+            <button type="submit" onclick="main()"> refresh </button>
+        </form>
+    </div>
+
+</body>
+</html>
