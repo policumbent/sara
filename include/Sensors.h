@@ -23,6 +23,7 @@ const double MAX_SPEED = 32.4;
 
 // LED pin for status info
 const int LED = 2;
+const unsigned int cs_mag = 5;
 
 template<typename sensor_T>
 class Sensors {
@@ -66,10 +67,6 @@ void Sensors<RTC_DS1307>::setup() {
     s->adjust(DateTime(F(__DATE__), F(__TIME__)));
 
     Serial.println("CORRECTLY INITIALIZED: RTC");
-
-    if (!s->isrunning()) {
-        s->adjust(DateTime(F(__DATE__), F(__TIME__)));
-    }
 }
 
 
@@ -157,11 +154,6 @@ void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
     Serial.println(val);
     Serial.println(voltage);
 #endif
-    if(check<WIFI_DEBUG>()) {
-        char buffer[8];
-        dtostrf(voltage, 1, 2, buffer);
-        clientPublish("weather_stations/ws1/humidity", buffer);
-    }
 
     if (voltage <= VOLTAGE_MIN) {
         data.windSpeed = 0.0;
@@ -169,8 +161,7 @@ void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
         data.windSpeed = MAX_SPEED;
     } else {
         data.windSpeed = ((voltage - VOLTAGE_MIN) * (MAX_SPEED - MIN_SPEED) /
-                      (VOLTAGE_MAX - VOLTAGE_MIN)) *
-                     3.6;
+                      (VOLTAGE_MAX - VOLTAGE_MIN));
     }
 }
 

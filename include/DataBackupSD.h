@@ -8,6 +8,8 @@
 #include "debugging.h"
 # include "Data.h"
 
+const unsigned int cs_sd = 2;
+
 class SDHandler{
 private:
     File data_log;

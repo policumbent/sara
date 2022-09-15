@@ -2,6 +2,7 @@
 #include <RTClib.h>
 #include <SPI.h>
 #include <Wire.h>
+#include "Led.h"
 #include "Sensors.h"
 #include "DataBackupSD.h"
 #include "DataBackupFlash.h"
@@ -17,9 +18,6 @@ float wind_speed = 0.0;
 
 unsigned long now;
 unsigned long lastMsg;
-
-unsigned int cs_sd = 2;
-unsigned int cs_mag = 5;
 
 Data &getData() {
     try {
@@ -98,16 +96,19 @@ FlashHandler &getFlashHandler(){
     }
 }
 
+
 void setup() {
     Serial.begin(115200);
 
     Serial.println("BEGIN");
 
-    pinMode(cs_sd, OUTPUT);
-    pinMode(cs_mag, OUTPUT);
+    pinMode(cs_sd, GPIO_MODE_OUTPUT);
+    pinMode(cs_mag, GPIO_MODE_OUTPUT);
 
     digitalWrite(cs_sd, LOW);
-    digitalWrite(cs_mag, LOW);
+    digitalWrite(cs_mag, HIGH);
+
+    led_off();
 
     delay(10);
 
@@ -120,15 +121,16 @@ void setup() {
     if(check<BME_DEBUG>()){
         getBme();
     }
-
     delay(10);
 
     if(check<ANEMOMETER_DEBUG>()){
         getAds();
     }
-    digitalWrite(cs_mag, LOW);
 
     delay(10);
+
+    //digitalWrite(cs_mag, LOW);
+    //digitalWrite(cs_sd, HIGH);
 
     // the SD must be initialized before the MAGNETIC ENCODER
     if(check<SD_DEBUG>()){
@@ -136,13 +138,18 @@ void setup() {
     }else if(check<SPIFFS_DEBUG>()){
         getFlashHandler();
     }
+
     digitalWrite(cs_sd, LOW);
+    digitalWrite(cs_mag, LOW);
+    //digitalWrite(cs_mag, HIGH);
+    //digitalWrite(cs_sd, LOW);
 
     delay(10);
 
     if(check<MAGNETOMETER_DEBUG>()){
       getAngleSensor();
     }
+
 
     if(check<EPAPER_DEBUG>()){
         init_display();
@@ -156,6 +163,7 @@ void setup() {
         }
     }
 
+
 #ifdef DEBUG
     p.Begin();
     p.AddTimeGraph("Wind Speed", 1500, "speed", wind_speed);
@@ -165,61 +173,69 @@ void setup() {
 #ifndef DEBUG
     Serial.println("SETUP COMPLETED");
 #endif
+
+    now = millis();
 }
 
 void loop() {
 
   clientConnect();
 
-  now = millis();
-  if (now - lastMsg > 1000) {
-      lastMsg = now;
+  lastMsg = now;
 
-      if (check<BME_DEBUG>()){
-          getBme().get_data(getData());
-      }else {
-          getData().temperature = 0.0;
-          getData().pressure = 0.0;
-          getData().humidity = 0.0;
-      }
+  if (check<BME_DEBUG>()){
+      getBme().get_data(getData());
+  }else {
+      getData().temperature = 0.0;
+      getData().pressure = 0.0;
+      getData().humidity = 0.0;
+  }
 
-      if (check<ANEMOMETER_DEBUG>()){
-          getAds().get_data(getData());
-      }else {
-          getData().windSpeed = 0.0;
-      }
+  if (check<ANEMOMETER_DEBUG>()){
+      getAds().get_data(getData());
+  }else {
+      getData().windSpeed = 0.0;
+  }
 
-      if (check<RTC_DEBUG>()){
-          getRtc().get_data(getData());
-      }else {
-          getData().windDirection = 0.0;
-      }
+  if (check<RTC_DEBUG>()){
+      getRtc().get_data(getData());
+  }else {
+      getData().windDirection = 0.0;
+  }
 
-      if (check<MAGNETOMETER_DEBUG>()){
-          getAngleSensor().get_data(getData());
-      }else {
-          getData().windDirection = 0.0;
-      }
+  digitalWrite(cs_sd, LOW);
+  digitalWrite(cs_mag, HIGH);
 
-      delay(100);
+  if(check<SD_DEBUG>()){
+      getSdHandler().write_sd(getData(), getRtc());
+  }else if(check<SPIFFS_DEBUG>()){
+      getFlashHandler().write_flash(getData(), getRtc());
+  }
 
-      publishMQTT(getData());
+  digitalWrite(cs_sd, LOW);
+  digitalWrite(cs_mag, LOW);
 
-      if(check<SD_DEBUG>()){
-        getSdHandler().write_sd(getData(), getRtc());
-      }else if(check<SPIFFS_DEBUG>()){
-          getFlashHandler().write_flash(getData(), getRtc());
-      }
+  if (check<MAGNETOMETER_DEBUG>()){
+      getAngleSensor().get_data(getData());
+  }else {
+      getData().windDirection = 0.0;
+  }
 
-      if(check<EPAPER_DEBUG>()){
-          display_data(getData());
-      }
+  publishMQTT(getData());
 
+  if(check<EPAPER_DEBUG>()){
+      display_data(getData());
   }
 
 #ifdef DEBUG
   wind_speed = getData().windSpeed;
   p.Plot();
 #endif
-  delay(100);
+
+  now = millis();
+
+  if(now - lastMsg < 1000){
+    delay(1000 - (now - lastMsg));
+  }
+
 }

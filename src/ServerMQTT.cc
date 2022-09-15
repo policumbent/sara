@@ -5,6 +5,8 @@
 WiFiClient espClient;
 PubSubClient client = PubSubClient(espClient);
 Info cred = Info();
+time_t timestamp;
+struct tm *tm_timestamp;
 
 void printMqttInfo() {
     Serial.println(cred.mqtt_pass);
@@ -89,10 +91,17 @@ void callback(char *topic, byte *message, unsigned int length) {
 void publishMQTT(Data &data) {
 
     led_on();
-#ifndef DEBUG
+    char buffer[32];
+
+    sprintf(buffer, "%02d/%02d/%02d %02d:%02d:%02d\n",
+            data.timestamp.year(),data.timestamp.month(), data.timestamp.day(),
+            data.timestamp.hour(), data.timestamp.minute(), data.timestamp.second());
+
+    #ifndef DEBUG
     Serial.println("\n- - - - - MQTT DATA - - - - -\n");
     // TIME
-    Serial.print(data.timestamp.year(), DEC);
+    Serial.print(buffer);
+    /*Serial.print(data.timestamp.year(), DEC);
     Serial.print("/");
     Serial.print(data.timestamp.month(), DEC);
     Serial.print("/");
@@ -102,10 +111,13 @@ void publishMQTT(Data &data) {
     Serial.print(":");
     Serial.print(data.timestamp.minute(), DEC);
     Serial.print(":");
-    Serial.println(data.timestamp.second(), DEC);
-#endif
+    Serial.println(data.timestamp.second(), DEC);*/
+
+     #endif
+    if (check<WIFI_DEBUG>()){
+        client.publish("weather/ws1/timestamp", buffer);
+    }
     // Convert the value to a char array
-    char buffer[8];
     dtostrf(data.temperature, 1, 2, buffer);
 
 #ifndef DEBUG
@@ -113,7 +125,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        client.publish("weather_stations/ws1/temperature", buffer);
+        client.publish("weather/ws1/temperature", buffer);
     }
 
     // Convert the value to a char array
@@ -124,7 +136,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        client.publish("weather_stations/ws1/humidity", buffer);
+        client.publish("weather/ws1/humidity", buffer);
     }
 
     // Convert the value to a char array
@@ -134,7 +146,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()) {
-        client.publish("weather_stations/ws1/pressure", buffer);
+        client.publish("weather/ws1/pressure", buffer);
     }
 
     // Convert the value to a char array
@@ -144,7 +156,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        client.publish("weather_stations/ws1/wind_speed", buffer);
+        client.publish("weather/ws1/speed", buffer);
     }
 
     // Convert the value to a char array
@@ -154,8 +166,10 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        client.publish("weather_stations/ws1/wind_direction", buffer);
+        client.publish("weather/ws1/direction", buffer);
     }
+
+
 
     led_off();
 #ifndef DEBUG

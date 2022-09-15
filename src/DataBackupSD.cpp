@@ -88,7 +88,6 @@ void SDHandler::write_sd(Data &data, Sensors<RTC_DS1307> &rtc) {
 void SDHandler::setup_sd(Data &data, int cs) {
 
     auto open_mode = FILE_WRITE;
-    int counter = 10;
     log_set = false;
 
     data.log_file = "/data.csv";
@@ -98,9 +97,9 @@ void SDHandler::setup_sd(Data &data, int cs) {
     }
 
     // setup pins
-    pinMode(cs, OUTPUT);
+    //pinMode(cs, OUTPUT);
 
-    while(!SD.begin(cs, SPI, 3000000) && counter) {
+    while(!SD.begin(cs, SPI, 3000000)) {
         Serial.println("Impossible to connect SD reader");
 
         if(!check<WIFI_DEBUG>()) {
