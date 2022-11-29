@@ -19,8 +19,8 @@ void init_webserver(Data *data){
         json["temperature"] = data->temperature;
         json["humidity"] = data->humidity;
         json["pressure"] = data->pressure;
-        json["wind_speed"] = data->windSpeed;
-        json["wind_direction"] = data->windDirection;
+        json["wind_speed"] = data->wind_speed;
+        json["wind_direction"] = data->wind_direction;
 
         response->setLength();
         response->setCode(200);

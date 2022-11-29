@@ -156,11 +156,11 @@ void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
 #endif
 
     if (voltage <= VOLTAGE_MIN) {
-        data.windSpeed = 0.0;
+        data.wind_speed = 0.0;
     } else if (voltage >= VOLTAGE_MAX) {
-        data.windSpeed = MAX_SPEED;
+        data.wind_speed = MAX_SPEED;
     } else {
-        data.windSpeed = ((voltage - VOLTAGE_MIN) * (MAX_SPEED - MIN_SPEED) /
+        data.wind_speed = ((voltage - VOLTAGE_MIN) * (MAX_SPEED - MIN_SPEED) /
                       (VOLTAGE_MAX - VOLTAGE_MIN));
     }
 }
@@ -168,7 +168,7 @@ void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
 template<>
 inline
 void Sensors<AS5048A>::get_data(Data& data) {
-    data.windDirection = (double) s->getRotationInDegrees();
+    data.wind_direction = (double) s->getRotationInDegrees();
 }
 
 template<>
@@ -176,12 +176,3 @@ inline
 void Sensors<RTC_DS1307>::get_data(Data& data){
     data.timestamp = s->now();
 }
-
-
-
-
-
-
-
-
-

@@ -150,7 +150,7 @@ void publishMQTT(Data &data) {
     }
 
     // Convert the value to a char array
-    dtostrf(data.windSpeed, 1, 2, buffer);
+    dtostrf(data.wind_speed, 1, 2, buffer);
 #ifndef DEBUG
     Serial.print("Wind Speed: ");
     Serial.println(buffer);
@@ -160,7 +160,7 @@ void publishMQTT(Data &data) {
     }
 
     // Convert the value to a char array
-    String(data.windDirection).toCharArray(buffer, 8);
+    String(data.wind_direction).toCharArray(buffer, 8);
 #ifndef DEBUG
     Serial.print("Wind Direction: ");
     Serial.println(buffer);
@@ -168,8 +168,6 @@ void publishMQTT(Data &data) {
     if (check<WIFI_DEBUG>()){
         client.publish("weather/ws1/direction", buffer);
     }
-
-
 
     led_off();
 #ifndef DEBUG

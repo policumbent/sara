@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include <iostream>
 # include <SPIFFS.h>
 #include "Sensors.h"
 #include "utils.h"
@@ -15,6 +14,5 @@ private:
 public:
     explicit FlashHandler(Data &data);
     void write_flash(Data&, Sensors<RTC_DS1307>&);
-    String read_flash(String);
-    void setLog(Data&, Sensors<RTC_DS1307>&);
+    void set_log(Data&, Sensors<RTC_DS1307>&);
 };

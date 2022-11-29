@@ -3,8 +3,8 @@
 
 
 FlashHandler::FlashHandler(Data &data) {
-    auto open_mode = FILE_WRITE;
-    log_set = false;
+    String open_mode = FILE_WRITE;
+    this->log_set = false;
     data.log_file = "/data.csv";
 
     if(!SPIFFS.begin(true)){
@@ -17,22 +17,22 @@ FlashHandler::FlashHandler(Data &data) {
     } else {
         open_mode = FILE_APPEND;
     }
-    data_log = SPIFFS.open(data.log_file, open_mode);
+    this->data_log = SPIFFS.open(data.log_file, open_mode);
 
-    if (!data_log) {
+    if (!this->data_log) {
         Serial.print("Error opening the file: ");
-        Serial.print(data_log);
-        data_log.close();
+        Serial.print(this->data_log);
+        this->data_log.close();
         loop_infinite();
     }
 
-    data_log.print("timeStamp, Temperature, Pressure, Humidity, Wind_Speed, "
+    this->data_log.print("timeStamp, Temperature, Pressure, Humidity, Wind_Speed, "
                    "Wind_Direction \n");
-    data_log.close();
+    this->data_log.close();
 
 }
 
-void FlashHandler::setLog(Data &data, Sensors<RTC_DS1307> &rtc) {
+void FlashHandler::set_log(Data &data, Sensors<RTC_DS1307> &rtc) {
 
     rtc.get_data(data);
     data.log_file =  "/" +
@@ -44,31 +44,31 @@ void FlashHandler::setLog(Data &data, Sensors<RTC_DS1307> &rtc) {
                      String(data.timestamp.second(), DEC) + ".csv";
 
     // the insertion of the header is done here in order not to access the RTC at setup time
-    data_log = SPIFFS.open(data.log_file, FILE_WRITE);
+    this->data_log = SPIFFS.open(data.log_file, FILE_WRITE);
 
-    if (!data_log) {
+    if (!this->data_log) {
         Serial.print("Error opening the file: ");
-        Serial.print(data_log);
-        data_log.close();
+        Serial.print(this->data_log);
+        this->data_log.close();
         loop_infinite();
     }
 
-    data_log.print("timeStamp, Temperature, Pressure, Humidity, Wind_Speed, "
+    this->data_log.print("timeStamp, Temperature, Pressure, Humidity, Wind_Speed, "
                    "Wind_Direction \n");
-    data_log.close();
+    this->data_log.close();
 
-    log_set = true;
+    this->log_set = true;
 }
 
 
 void FlashHandler::write_flash(Data &data, Sensors<RTC_DS1307>& rtc) {
 
-    if(not log_set){
-        setLog(data, rtc);
+    if(not this->log_set){
+        this->set_log(data, rtc);
     }
 
     // printing on file
-    data_log = SPIFFS.open(data.log_file, FILE_APPEND);
+    this->data_log = SPIFFS.open(data.log_file, FILE_APPEND);
     String data_to_print; // ---> this string should contain all the information
     // and write just once on the file --> this should
     // reduce errors
@@ -94,14 +94,14 @@ void FlashHandler::write_flash(Data &data, Sensors<RTC_DS1307>& rtc) {
     data_to_print += String(buffer) + ", ";
 
     // Convert the value to a char array
-    get_str(data.windSpeed, buffer);
+    get_str(data.wind_speed, buffer);
     data_to_print += String(buffer) + ", ";
 
     // Convert the value to a char array
-    get_str(data.windDirection, buffer);
+    get_str(data.wind_direction, buffer);
     data_to_print += String(buffer);
 
-    data_log.println(data_to_print);
+    this->data_log.println(data_to_print);
 
-    data_log.close();
+    this->data_log.close();
 }

@@ -194,13 +194,13 @@ void loop() {
   if (check<ANEMOMETER_DEBUG>()){
       getAds().get_data(getData());
   }else {
-      getData().windSpeed = 0.0;
+      getData().wind_speed = 0.0;
   }
 
   if (check<RTC_DEBUG>()){
       getRtc().get_data(getData());
   }else {
-      getData().windDirection = 0.0;
+      getData().wind_direction = 0.0;
   }
 
   digitalWrite(cs_sd, LOW);
@@ -218,7 +218,7 @@ void loop() {
   if (check<MAGNETOMETER_DEBUG>()){
       getAngleSensor().get_data(getData());
   }else {
-      getData().windDirection = 0.0;
+      getData().wind_direction = 0.0;
   }
 
   publishMQTT(getData());

@@ -5,7 +5,7 @@
 class Data {
 public:
     float temperature, humidity, pressure;
-    double windSpeed, windDirection;
+    double wind_speed, wind_direction;
     DateTime timestamp;
     String log_file;
     long lastMsg = 0;

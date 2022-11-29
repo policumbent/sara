@@ -17,7 +17,7 @@ private:
 public:
     explicit SDHandler(Data &, int cs);
     void write_sd(Data&, Sensors<RTC_DS1307> &);
-    void setLog(Data&, Sensors<RTC_DS1307> &);
+    void set_log(Data&, Sensors<RTC_DS1307> &);
 
 private:
     void setup_sd(Data &, int cs);

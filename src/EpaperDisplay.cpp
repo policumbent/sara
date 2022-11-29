@@ -63,11 +63,11 @@ void display_data(Data &data){
     paint.DrawStringAt(70, 44, buffer, &Font16, UNCOLORED);
 
     paint.DrawStringAt(30, 134, "Wind Speed: ", &Font16, UNCOLORED);
-    dtostrf(data.windSpeed, 1, 2, buffer);
+    dtostrf(data.wind_speed, 1, 2, buffer);
     paint.DrawStringAt(70, 44, buffer, &Font16, UNCOLORED);
 
     paint.DrawStringAt(30, 164, "Wind Direction: ", &Font16, UNCOLORED);
-    dtostrf(data.windDirection, 1, 2, buffer);
+    dtostrf(data.wind_direction, 1, 2, buffer);
     paint.DrawStringAt(70, 44, buffer, &Font16, UNCOLORED);
 
     display.SetFrameMemory(paint.GetImage(), 0, 10, paint.GetWidth(), paint.GetHeight());
