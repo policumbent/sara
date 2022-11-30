@@ -87,15 +87,11 @@ void SDHandler::write_sd(Data &data, Sensors<RTC_DS1307> &rtc) {
 
 void SDHandler::setup_sd(Data &data, int cs) {
 
-    String open_mode = FILE_WRITE;
+    const char * open_mode = FILE_WRITE;
     uint8_t card_type;
     this->log_set = false;
 
     data.log_file = "/data.csv";
-
-    if(!check<WIFI_DEBUG>()) {
-        clientConnect();
-    }
 
     // setup pins
     //pinMode(cs, OUTPUT);
@@ -104,7 +100,7 @@ void SDHandler::setup_sd(Data &data, int cs) {
         Serial.println("Impossible to connect SD reader");
 
         if(!check<WIFI_DEBUG>()) {
-            clientPublish("SENSORE SD CARD: ", "NOT WORKING");
+            publish("SENSORE SD CARD: ", "NOT WORKING");
         }
         delay(200);
         //counter--;
@@ -125,7 +121,7 @@ void SDHandler::setup_sd(Data &data, int cs) {
         open_mode = FILE_APPEND;
     }
 
-    this->data_log = SD.open(data.log_file, open_mode);
+    this->data_log = SD.open(data.log_file.c_str(), open_mode, false);
 
     if (!this->data_log) {
         Serial.print("Error opening the file: ");

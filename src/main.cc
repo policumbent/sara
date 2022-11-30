@@ -8,6 +8,7 @@
 #include "DataBackupFlash.h"
 #include "EpaperDisplay.h"
 #include "WebServer.h"
+#include "RemoteServer.h"
 
 #ifdef DEBUG
 #include "Plotter.h"
@@ -156,8 +157,7 @@ void setup() {
     }
 
     if(check<WIFI_DEBUG>()){
-        init_wifi();
-        init_client();
+        setupMQTT();
         if(check<WEBSERVER_DEBUG>()){
             init_webserver(&getData());
         }
@@ -179,7 +179,7 @@ void setup() {
 
 void loop() {
 
-  clientConnect();
+  connect();
 
   lastMsg = now;
 

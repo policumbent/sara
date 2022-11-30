@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "debugging.h"
 #include "Data.h"
-#include "ServerMQTT.h"
+#include "RemoteServer.h"
 
 
 const double SEALEVELPRESSURE_HPA = 1013.25;
@@ -59,7 +59,7 @@ void Sensors<RTC_DS1307>::setup() {
     if (!s->begin()) {
         Serial.println("Problems setting up RTC module");
         if(check<WIFI_DEBUG>()){
-            clientPublish("SENSORE RTC: ", "NOT WORKING");
+            publish("SENSORE RTC: ", "NOT WORKING");
         }
         loop_infinite();
     }
@@ -91,7 +91,7 @@ void Sensors<Adafruit_ADS1115>::setup() {
         Serial.println("Failed to initialize ADC.");
 
         if(check<WIFI_DEBUG>()) {
-            clientPublish("SENSORE ADC: ", "NOT WORKING");
+            publish("SENSORE ADC: ", "NOT WORKING");
         }
 
         loop_infinite();
@@ -123,7 +123,7 @@ void Sensors<Adafruit_BME280>::setup() {
         Serial.print("        ID of 0x60 represents a BME 280.\n");
         Serial.print("        ID of 0x61 represents a BME 680.\n");
 
-        clientPublish("SENSORE BME: ", "NOT WORKING");
+        publish("SENSORE BME: ", "NOT WORKING");
 
         loop_infinite();
     }

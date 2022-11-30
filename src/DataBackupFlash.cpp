@@ -3,7 +3,7 @@
 
 
 FlashHandler::FlashHandler(Data &data) {
-    String open_mode = FILE_WRITE;
+    const char *open_mode = FILE_WRITE;
     this->log_set = false;
     data.log_file = "/data.csv";
 
@@ -17,7 +17,7 @@ FlashHandler::FlashHandler(Data &data) {
     } else {
         open_mode = FILE_APPEND;
     }
-    this->data_log = SPIFFS.open(data.log_file, open_mode);
+    this->data_log = SPIFFS.open(data.log_file.c_str(), open_mode, false);
 
     if (!this->data_log) {
         Serial.print("Error opening the file: ");
