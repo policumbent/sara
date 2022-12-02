@@ -151,7 +151,6 @@ void setup() {
       getAngleSensor();
     }
 
-
     if(check<EPAPER_DEBUG>()){
         init_display();
     }
@@ -162,7 +161,6 @@ void setup() {
             init_webserver(&getData());
         }
     }
-
 
 #ifdef DEBUG
     p.Begin();

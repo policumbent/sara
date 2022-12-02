@@ -32,31 +32,37 @@ private:
 public:
     Sensors();
     Sensors(uint8_t, bool);
+
+    ~ Sensors();
+
     void setup();
     void setup(uint8_t, bool);
     void get_data(Data& data);
 };
 
 template<typename T> Sensors<T>::Sensors(){
-    s = NULL;
+    this->s = NULL;
     setup();
 }
 
 template<typename T> Sensors<T>::Sensors(uint8_t arg_cs, bool debug){
-    s = NULL;
+    this->s = NULL;
     setup(arg_cs, debug);
 }
 
+template<typename T> Sensors<T>::~ Sensors(){
+    delete this->s;
+}
 
 // setters
 template<>
 inline
 void Sensors<RTC_DS1307>::setup() {
 
-    s = new RTC_DS1307();
+    this->s = new RTC_DS1307();
 
 
-    if (!s->begin()) {
+    if (!this->s->begin()) {
         Serial.println("Problems setting up RTC module");
         if(check<WIFI_DEBUG>()){
             publish("SENSORE RTC: ", "NOT WORKING");
@@ -64,7 +70,7 @@ void Sensors<RTC_DS1307>::setup() {
         loop_infinite();
     }
 
-    s->adjust(DateTime(F(__DATE__), F(__TIME__)));
+    this->s->adjust(DateTime(F(__DATE__), F(__TIME__)));
 
     Serial.println("CORRECTLY INITIALIZED: RTC");
 }
@@ -74,8 +80,8 @@ void Sensors<RTC_DS1307>::setup() {
 template<>
 inline
 void Sensors<AS5048A>::setup(uint8_t arg_cs, bool debug) {
-    s = new AS5048A(arg_cs, debug);
-    s->begin();
+    this->s = new AS5048A(arg_cs, debug);
+    this->s->begin();
     Serial.println("CORRECTLY INITIALIZED: MAGNETIC ENCODER");
 
 }
@@ -84,10 +90,10 @@ template<>
 inline
 void Sensors<Adafruit_ADS1115>::setup() {
 
-    s = new Adafruit_ADS1115();
+    this->s = new Adafruit_ADS1115();
 
 
-    if (!s->begin(0b1001000)) {
+    if (!this->s->begin(0b1001000)) {
         Serial.println("Failed to initialize ADC.");
 
         if(check<WIFI_DEBUG>()) {
@@ -106,13 +112,9 @@ void Sensors<Adafruit_BME280>::setup() {
 
     int status;
 
-    s = new Adafruit_BME280();
+    this->s = new Adafruit_BME280();
 
-    status = s->begin(0x76); // inizializzazione sensore temperatura
-    for (int i = 0x00; !status && i < 0xFF; i++) {
-        status = s->begin(0x76);
-    }
-    if (!status) {
+    if (!this->s->begin(0x76)) {
         Serial.println("Could not find a valid BME280 sensor, check wiring, "
                        "address, sensor ID!");
         Serial.print("SensorID was: 0x");
