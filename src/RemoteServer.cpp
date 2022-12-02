@@ -41,11 +41,11 @@ void callback(const char *topic, byte *message, unsigned int length) {
 }
 
 void publish(const char* topic, const char * payload){
-    clientPublish(topic, payload, client);
+    client_publish(topic, payload, client);
 }
 
 void connect(){
-    clientConnect("ESP-WROOM-32", cred.mqtt_usr.c_str(), cred.mqtt_pass.c_str(), client);
+    client_connect("ESP-WROOM-32", cred.mqtt_usr.c_str(), cred.mqtt_pass.c_str(), client);
 }
 
 void publishMQTT(Data &data) {

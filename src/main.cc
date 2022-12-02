@@ -18,7 +18,7 @@ float wind_speed = 0.0;
 
 
 unsigned long now;
-unsigned long lastMsg;
+unsigned long last_msg;
 
 Data &getData() {
     try {
@@ -181,7 +181,7 @@ void loop() {
 
   connect();
 
-  lastMsg = now;
+  last_msg = now;
 
   if (check<BME_DEBUG>()){
       getBme().get_data(getData());
@@ -234,8 +234,8 @@ void loop() {
 
   now = millis();
 
-  if(now - lastMsg < 1000){
-    delay(1000 - (now - lastMsg));
+  if(now - last_msg < 1000){
+    delay(1000 - (now - last_msg));
   }
 
 }

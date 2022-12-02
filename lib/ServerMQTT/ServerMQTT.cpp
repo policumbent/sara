@@ -41,11 +41,11 @@ void reconnect(char* id, const char *mqtt_user, const char *mqtt_password, PubSu
     }
 }
 
-void clientPublish(const char *topic, const char *payload, PubSubClient &client) {
+void client_publish(const char *topic, const char *payload, PubSubClient &client) {
   client.publish(topic, payload);
 }
 
-void clientConnect(char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
+void client_connect(char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
     if (!client.connected()) {
         reconnect(id, mqtt_user, mqtt_password, client);
     }
