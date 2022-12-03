@@ -10,6 +10,8 @@
 #include "WebServer.h"
 #include "RemoteServer.h"
 
+#define CICLE_MSEC 1000
+
 #ifdef DEBUG
 #include "Plotter.h"
 Plotter p;
@@ -114,8 +116,16 @@ void setup() {
 
     delay(10);
 
+    getData(); // initializes Data first
+
+    delay(10);
+
     if(check<RTC_DEBUG>()){
         getRtc();
+        getRtc().get_data(getData()); // doesn't have a debug clause
+        getData().set_log(1);
+    }else{
+        getData().set_log(0);
     }
 
     delay(10);
@@ -199,16 +209,16 @@ void loop() {
   if (check<RTC_DEBUG>()){
       getRtc().get_data(getData());
   }else {
-      getData().wind_direction = 0.0;
+      getData().timestamp = DateTime((uint32_t) 0);
   }
 
   digitalWrite(cs_sd, LOW);
   digitalWrite(cs_mag, HIGH);
 
   if(check<SD_DEBUG>()){
-      getSdHandler().write_sd(getData(), getRtc());
+      getSdHandler().write_sd(getData());
   }else if(check<SPIFFS_DEBUG>()){
-      getFlashHandler().write_flash(getData(), getRtc());
+      getFlashHandler().write_flash(getData());
   }
 
   digitalWrite(cs_sd, LOW);
@@ -233,8 +243,8 @@ void loop() {
 
   now = millis();
 
-  if(now - last_msg < 1000){
-    delay(1000 - (now - last_msg));
+  if(now - last_msg < CICLE_MSEC){
+    delay(CICLE_MSEC - (now - last_msg));
   }
 
 }

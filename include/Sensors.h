@@ -137,24 +137,19 @@ void Sensors<Adafruit_BME280>::setup() {
 template<>
 inline
 void Sensors<Adafruit_BME280>::get_data(Data& data) {
-    data.temperature = s->readTemperature();
-    data.humidity = s->readHumidity();
-    data.pressure = s->readPressure() / 100.0F;
+    data.temperature = this->s->readTemperature();
+    data.humidity = this->s->readHumidity();
+    data.pressure = this->s->readPressure() / 100.0F;
 }
 
 template<>
 inline
 void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
-    int16_t val = s->readADC_SingleEnded(0);
+    int16_t val = this->s->readADC_SingleEnded(0);
     float voltage = 0.0;
 
     // voltage = (val * analog_to_volt_conv);
-    voltage = s->computeVolts(val);
-
-#ifndef DEBUG
-    Serial.println(val);
-    Serial.println(voltage);
-#endif
+    voltage = this->s->computeVolts(val);
 
     if (voltage <= VOLTAGE_MIN) {
         data.wind_speed = 0.0;
@@ -169,11 +164,11 @@ void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
 template<>
 inline
 void Sensors<AS5048A>::get_data(Data& data) {
-    data.wind_direction = (double) s->getRotationInDegrees();
+    data.wind_direction = (double) this->s->getRotationInDegrees();
 }
 
 template<>
 inline
 void Sensors<RTC_DS1307>::get_data(Data& data){
-    data.timestamp = s->now();
+    data.timestamp = this->s->now();
 }
