@@ -30,4 +30,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(Z_DUMMY_TARGET ${SRC_LIST} include/EpaperDisplay.h src/EpaperDisplay.cpp src/WebServer.cpp include/WebServer.h src/RemoteServer.cpp include/RemoteServer.h)
+add_executable(Z_DUMMY_TARGET ${SRC_LIST} include/EpaperDisplay.h src/EpaperDisplay.cpp lib/WebServer/WebServer.cpp lib/WebServer/WebServer.h src/Connections.cpp include/Connections.h)

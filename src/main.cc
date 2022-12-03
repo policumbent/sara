@@ -8,7 +8,7 @@
 #include "DataBackupFlash.h"
 #include "EpaperDisplay.h"
 #include "WebServer.h"
-#include "RemoteServer.h"
+#include "Connections.h"
 
 #define CICLE_MSEC 1000
 
@@ -100,6 +100,19 @@ FlashHandler &getFlashHandler(){
     }
 }
 
+WebServer &getWebServer(){
+    try {
+        static WebServer web_server = WebServer(&getData());
+        return web_server;
+    }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+
+
+}
+
 
 void setup() {
     Serial.begin(115200);
@@ -153,8 +166,6 @@ void setup() {
 
     digitalWrite(cs_sd, LOW);
     digitalWrite(cs_mag, LOW);
-    //digitalWrite(cs_mag, HIGH);
-    //digitalWrite(cs_sd, LOW);
 
     delay(10);
 
@@ -169,7 +180,7 @@ void setup() {
     if(check<WIFI_DEBUG>()){
         setupMQTT();
         if(check<WEBSERVER_DEBUG>()){
-            init_webserver(&getData());
+            getWebServer();
         }
     }
 

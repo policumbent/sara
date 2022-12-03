@@ -2,17 +2,29 @@
 #include <WiFi.h>
 #include <WiFiAP.h>
 
-AsyncWebServer server = AsyncWebServer(80);
+WebServer::WebServer(Data *data) {
+    init_webserver(data);
+}
 
-void init_webserver(Data *data){
+WebServer::~WebServer() {
+    server->end();
+    server->reset();
+    SPIFFS.end(); // this may cause problems TODO: test
+    WiFi.softAPdisconnect(true);
+    delete server;
+}
+
+void WebServer::init_webserver(Data *data){
     WiFi.softAP(AP_SSID, AP_PASSWORD);
 
-    server.onNotFound([](AsyncWebServerRequest *request) {
+    this->server = new AsyncWebServer(80);
+
+    this->server->onNotFound([](AsyncWebServerRequest *request) {
         request->send(404, "text/plain", "API Not Found");
     });
 
     // API REQUESTS
-    server.on("/api/refresh", HTTP_GET, [data](AsyncWebServerRequest *request) {
+    this->server->on("/api/refresh", HTTP_GET, [data](AsyncWebServerRequest *request) {
         auto response = new AsyncJsonResponse();
         auto json = response->getRoot();
 
@@ -26,9 +38,11 @@ void init_webserver(Data *data){
         response->setCode(200);
 
         request->send(response);
+
+        delete response;
     });
 
-    server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+    this->server->serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
 
-    server.begin();
+    this->server->begin();
 }

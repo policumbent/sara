@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "debugging.h"
 #include "Data.h"
-#include "RemoteServer.h"
+#include "Connections.h"
 
 
 const double SEALEVELPRESSURE_HPA = 1013.25;

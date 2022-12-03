@@ -7,4 +7,17 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
-void init_webserver(Data *);
+class WebServer {
+
+    AsyncWebServer *server;
+
+public:
+    WebServer(Data *);
+    ~ WebServer();
+
+private:
+    void init_webserver(Data *);
+
+};
+
+
