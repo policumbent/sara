@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "Data.h"
+#include "../../lib/Data/Data.h"
 
 TEST(data_test, check_data_init_zero){
     Data data = Data();

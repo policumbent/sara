@@ -1,14 +1,11 @@
 #pragma once
 
 #include <Arduino.h>
-#include <iostream>
 #include <SD.h>
 #include "Sensors.h"
 #include "utils.h"
 #include "debugging.h"
 # include "Data.h"
-
-const unsigned int cs_sd = 2;
 
 class SDHandler{
 private:

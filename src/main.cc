@@ -19,6 +19,7 @@ float wind_speed = 0.0;
 
 unsigned long now;
 unsigned long last_msg;
+const unsigned int cs_sd = 2;
 
 Data &getData() {
     try {

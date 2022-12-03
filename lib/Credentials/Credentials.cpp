@@ -1,11 +1,6 @@
 # include "credentials.h"
-# include "debugging.h"
 
 Info::Info(){
-
-    if(!WIFI_DEBUG){
-        return;
-    }
 
     this->ssid = WIFI_HOTSPOT_SSID;
     this->password = WIFI_HOTSPOT_PASSWORD;

@@ -61,7 +61,6 @@ void Sensors<RTC_DS1307>::setup() {
 
     this->s = new RTC_DS1307();
 
-
     if (!this->s->begin()) {
         Serial.println("Problems setting up RTC module");
         if(check<WIFI_DEBUG>()){
