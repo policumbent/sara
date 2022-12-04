@@ -12,11 +12,12 @@ void SDHandler::write_sd(Data &data) {
     // and write just once on the file --> this should
     // reduce errors
 
-    sprintf(this->buffer, "%02d/%02d/%02d %02d:%02d:%02d, %.2f, %.2f, %.2f, %.2f, %.2f",
+    sprintf(this->buffer, "%02d/%02d/%02d %02d:%02d:%02d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f",
             data.timestamp.year(),data.timestamp.month(), data.timestamp.day(),
             data.timestamp.hour(), data.timestamp.minute(), data.timestamp.second(),
 
-            data.temperature, data.humidity, data.pressure, data.wind_speed, data.wind_direction);
+            data.temperature, data.humidity, data.pressure, data.wind_speed, data.wind_direction,
+            data.longitude, data.latitude, data.altitude);
 
     this->data_log.println(this->buffer);
 
@@ -56,8 +57,8 @@ void SDHandler::setup_sd(Data &data, int cs) {
         loop_infinite();
     }
 
-    this->data_log.print("Time_Stamp, Temperature, Pressure, Humidity, Wind_Speed, "
-                         "Wind_Direction \n");
+    this->data_log.print("timeStamp, Temperature(°C), Pressure(hPa), Humidity(%), Wind_Speed(m/s), "
+                         "Wind_Direction(deg), Longitude(deg), Latitude(deg), Altitude(m)\n");
     this->data_log.close();
 
 }

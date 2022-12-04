@@ -61,7 +61,6 @@ void publishMQTT(Data &data) {
     Serial.println("\n- - - - - MQTT DATA - - - - -\n");
     // TIME
     Serial.print(buffer);
-
 #endif
     if (check<WIFI_DEBUG>()){
         publish("weather/ws1/timestamp", buffer);
@@ -116,6 +115,36 @@ void publishMQTT(Data &data) {
 #endif
     if (check<WIFI_DEBUG>()){
         publish("weather/ws1/direction", buffer);
+    }
+
+    // Convert the value to a char array
+    String(data.latitude).toCharArray(buffer, 8);
+#ifndef DEBUG
+    Serial.print("Latitude: ");
+    Serial.println(buffer);
+#endif
+    if (check<WIFI_DEBUG>()){
+        publish("weather/ws1/latitude", buffer);
+    }
+
+    // Convert the value to a char array
+    String(data.longitude).toCharArray(buffer, 8);
+#ifndef DEBUG
+    Serial.print("Longitude: ");
+    Serial.println(buffer);
+#endif
+    if (check<WIFI_DEBUG>()){
+        publish("weather/ws1/longitude", buffer);
+    }
+
+    // Convert the value to a char array
+    String(data.altitude).toCharArray(buffer, 8);
+#ifndef DEBUG
+    Serial.print("Altitude: ");
+    Serial.println(buffer);
+#endif
+    if (check<WIFI_DEBUG>()){
+        publish("weather/ws1/altitude", buffer);
     }
 
     led_off();

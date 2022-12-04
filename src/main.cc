@@ -2,6 +2,7 @@
 #include <RTClib.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <SoftwareSerial.h>
 #include "Led.h"
 #include "Sensors.h"
 #include "DataBackupSD.h"
@@ -18,10 +19,10 @@ Plotter p;
 float wind_speed = 0.0;
 #endif
 
-
 unsigned long now;
 unsigned long last_msg;
 const unsigned int cs_sd = 2;
+SoftwareSerial gps_serial(25, 24);
 
 Data &getData() {
     try {
@@ -78,6 +79,17 @@ Sensors<RTC_DS1307> &getRtc() {
     }
 }
 
+Sensors<TinyGPSPlus> &getGPS() {
+    try {
+        static Sensors<TinyGPSPlus> gps = Sensors<TinyGPSPlus>();
+        return gps;
+    }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+
 SDHandler &getSdHandler(){
     try {
         static SDHandler sd_handler = SDHandler(getData(), cs_sd);
@@ -109,13 +121,13 @@ WebServer &getWebServer(){
         Serial.println(ex.what());
         exit(EXIT_FAILURE);
     }
-
-
 }
 
 
 void setup() {
     Serial.begin(115200);
+    gps_serial.begin(9600);
+
 
     Serial.println("BEGIN");
 
@@ -245,6 +257,13 @@ void loop() {
 
   if(check<EPAPER_DEBUG>()){
       display_data(getData());
+  }
+
+  if(check<GPS_DEBUG>()){
+      while(gps_serial.available()){
+          getData().gps_char = gps_serial.read();
+          getGPS().get_data(getData());
+      }
   }
 
 #ifdef DEBUG

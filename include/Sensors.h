@@ -6,13 +6,14 @@
 #include <Adafruit_ADS1X15.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_Sensor.h>
+#include <SoftwareSerial.h>
+#include <TinyGPSPlus.h>
 #include <SD.h>
 #include "AS5048A.h"
 #include "utils.h"
 #include "debugging.h"
 #include "Data.h"
 #include "Connections.h"
-
 
 const double SEALEVELPRESSURE_HPA = 1013.25;
 
@@ -55,6 +56,22 @@ template<typename T> Sensors<T>::~ Sensors(){
 }
 
 // setters
+template<>
+inline
+void Sensors<TinyGPSPlus>::setup(){
+    this->s = new TinyGPSPlus();
+    if(!this->s){
+        Serial.println("Problems setting up GPS module");
+        if(check<WIFI_DEBUG>()){
+            publish("SENSORE GPS: ", "NOT WORKING");
+        }
+        loop_infinite();
+    }
+    Serial.println("CORRECTLY INITIALIZED: GPS");
+}
+
+
+
 template<>
 inline
 void Sensors<RTC_DS1307>::setup() {
@@ -133,6 +150,31 @@ void Sensors<Adafruit_BME280>::setup() {
 }
 
 // getters
+template<>
+inline
+void Sensors<TinyGPSPlus>::get_data(Data &data) {
+    // the message must be transmitted completely before it can be read
+    if(this->s->encode((char) data.gps_char)){
+
+        if(this->s->location.isValid()){
+        data.longitude = this->s->location.lng();
+        data.latitude = this->s->location.lat();
+        }
+        if(this->s->altitude.isValid()){
+            data.altitude = this->s->altitude.meters();
+        }
+        if(this->s->date.isValid() && this->s->time.isValid()){
+            data.gps_timestamp = DateTime(
+                    this->s->date.year(),
+                    this->s->date.month(),
+                    this->s->date.day(),
+                    this->s->time.hour(),
+                    this->s->time.minute(),
+                    this->s->time.second()
+                    );
+        }
+    }
+}
 
 template<>
 inline
