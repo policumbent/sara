@@ -22,7 +22,17 @@ float wind_speed = 0.0;
 unsigned long now;
 unsigned long last_msg;
 const unsigned int cs_sd = 2;
-SoftwareSerial gps_serial(25, 24);
+
+SoftwareSerial &getGPSSerial(){
+    try {
+        static SoftwareSerial gps_serial(25, 24, false);
+        return gps_serial;
+    }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
 
 Data &getData() {
     try {
@@ -126,7 +136,7 @@ WebServer &getWebServer(){
 
 void setup() {
     Serial.begin(115200);
-    gps_serial.begin(9600);
+    getGPSSerial().begin(9600);
 
 
     Serial.println("BEGIN");
@@ -260,8 +270,8 @@ void loop() {
   }
 
   if(check<GPS_DEBUG>()){
-      while(gps_serial.available()){
-          getData().gps_char = gps_serial.read();
+      while(getGPSSerial().available()){
+          getData().gps_char = getGPSSerial().read();
           getGPS().get_data(getData());
       }
   }
