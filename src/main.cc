@@ -19,9 +19,13 @@ Plotter p;
 float wind_speed = 0.0;
 #endif
 
+// LED pin for status info
+const unsigned int LED = 2;
+const unsigned int cs_mag = 5;
+const unsigned int cs_sd = 2;
+
 unsigned long now;
 unsigned long last_msg;
-const unsigned int cs_sd = 2;
 
 SoftwareSerial &getGPSSerial(){
     try {

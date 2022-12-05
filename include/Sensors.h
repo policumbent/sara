@@ -8,6 +8,7 @@
 #include <Adafruit_Sensor.h>
 #include <SoftwareSerial.h>
 #include <TinyGPSPlus.h>
+#include <NTPClient.h>
 #include <SD.h>
 #include "AS5048A.h"
 #include "utils.h"
@@ -22,9 +23,6 @@ const double VOLTAGE_MAX = 2.0;
 const double MIN_SPEED = 0.0;
 const double MAX_SPEED = 32.4;
 
-// LED pin for status info
-const int LED = 2;
-const unsigned int cs_mag = 5;
 
 template<typename sensor_T>
 class Sensors {
@@ -56,6 +54,25 @@ template<typename T> Sensors<T>::~ Sensors(){
 }
 
 // setters
+template<>
+inline
+void Sensors<NTPClient>::setup(){
+    this->s = new NTPClient(*(new WiFiUDP()));
+
+    if(!this->s){
+        Serial.println("Problems setting up GPS module");
+        if(check<WIFI_DEBUG>()){
+            publish("CLIENT NTP: ", "NOT WORKING");
+        }
+        loop_infinite();
+    }
+
+    this->s->begin();
+    Serial.println("CORRECTLY INITIALIZED: CLIENT NTP");
+
+}
+
+
 template<>
 inline
 void Sensors<TinyGPSPlus>::setup(){
@@ -213,4 +230,11 @@ template<>
 inline
 void Sensors<RTC_DS1307>::get_data(Data& data){
     data.timestamp = this->s->now();
+}
+
+template<>
+inline
+void Sensors<NTPClient>::get_data(Data& data){
+    this->s->update();
+    data.ntp_timestamp = DateTime(this->s->getEpochTime());
 }

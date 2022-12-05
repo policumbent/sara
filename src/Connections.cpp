@@ -45,7 +45,7 @@ void publish(const char* topic, const char * payload){
 }
 
 void connect(){
-    client_connect("ESP-WROOM-32", cred.mqtt_usr.c_str(), cred.mqtt_pass.c_str(), client);
+    client_connect((const char *) "ESP-WROOM-32", cred.mqtt_usr.c_str(), cred.mqtt_pass.c_str(), client);
 }
 
 void publishMQTT(Data &data) {

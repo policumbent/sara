@@ -22,7 +22,7 @@ void init_client(const char *mqtt_server, int mqtt_port, void (*callback) (const
   client.setCallback(callback);
 }
 
-void reconnect(char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
+void reconnect(const char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
     // Loop until we're reconnected
     while (!client.connected()) {
         Serial.print("Attempting MQTT connection...");
@@ -45,7 +45,7 @@ void client_publish(const char *topic, const char *payload, PubSubClient &client
   client.publish(topic, payload);
 }
 
-void client_connect(char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
+void client_connect(const char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
     if (!client.connected()) {
         reconnect(id, mqtt_user, mqtt_password, client);
     }
