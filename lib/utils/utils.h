@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <Arduino.h>
 
 void get_str(double val, char buff[8]);

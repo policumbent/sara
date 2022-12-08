@@ -205,7 +205,7 @@ template<>
 inline
 void Sensors<Adafruit_ADS1115>::get_data(Data& data) {
     int16_t val = this->s->readADC_SingleEnded(0);
-    float voltage = 0.0;
+    float voltage = 0.0f;
 
     // voltage = (val * analog_to_volt_conv);
     voltage = this->s->computeVolts(val);

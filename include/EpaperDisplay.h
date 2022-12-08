@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Data.h"
-#include <SPI.h>
 #include <Arduino.h>
 #include "epd1in54.h"
 #include "epdpaint.h"

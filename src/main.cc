@@ -1,8 +1,3 @@
-#include <Arduino.h>
-#include <RTClib.h>
-#include <SPI.h>
-#include <Wire.h>
-#include <SoftwareSerial.h>
 #include "Led.h"
 #include "Sensors.h"
 #include "DataBackupSD.h"
@@ -27,6 +22,11 @@ const unsigned int cs_sd = 2;
 unsigned long now;
 unsigned long last_msg;
 
+/*
+ * getters and setters avoid the possibility
+ * to have unhandled exceptions which could lead to
+ * reboots
+ * */
 SoftwareSerial &getGPSSerial(){
     try {
         static SoftwareSerial gps_serial(25, 24, false);
@@ -142,7 +142,6 @@ void setup() {
     Serial.begin(115200);
     getGPSSerial().begin(9600);
 
-
     Serial.println("BEGIN");
 
     pinMode(cs_sd, GPIO_MODE_OUTPUT);
@@ -162,9 +161,9 @@ void setup() {
     if(check<RTC_DEBUG>()){
         getRtc();
         getRtc().get_data(getData()); // doesn't have a debug clause
-        getData().set_log(1);
+        getData().set_log(true);
     }else{
-        getData().set_log(0);
+        getData().set_log(false);
     }
 
     delay(10);
@@ -184,14 +183,16 @@ void setup() {
     //digitalWrite(cs_sd, HIGH);
 
     // the SD must be initialized before the MAGNETIC ENCODER
+    // they both communicate using the SPI protocol BUT SD is configured on SPI_0 while the encoder is on SPI_1
     if(check<SD_DEBUG>()){
         getSdHandler();
     }else if(check<SPIFFS_DEBUG>()){
         getFlashHandler();
     }
 
-    digitalWrite(cs_sd, LOW);
-    digitalWrite(cs_mag, LOW);
+    // some problems with the SD card lead to this solution, TODO: find better solution
+    digitalWrite(cs_sd, HIGH);
+    digitalWrite(cs_mag, HIGH);
 
     delay(10);
 
