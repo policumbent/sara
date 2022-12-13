@@ -13,6 +13,8 @@ private:
 public:
     explicit FlashHandler(Data &data);
     void write_flash(Data&);
+    void read_flash(Data&);
+    void flush();
 private:
     void setup_spiffs(Data &);
 };

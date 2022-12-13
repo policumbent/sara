@@ -24,6 +24,20 @@ void SDHandler::write_sd(Data &data) {
     this->data_log.close();
 }
 
+void SDHandler::read_sd(Data &data) {
+    this->data_log = SD.open(data.log_file, FILE_READ);
+
+    String txt = "";
+
+    while(this->data_log.available()){
+        txt += this->data_log.readStringUntil('\n');
+    }
+
+    Serial.print(txt);
+
+    this->data_log.close();
+}
+
 void SDHandler::setup_sd(Data &data, int cs) {
 
     uint8_t card_type;

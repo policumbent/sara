@@ -27,6 +27,46 @@ void FlashHandler::write_flash(Data &data) {
     this->data_log.close();
 }
 
+void FlashHandler::read_flash(Data &data) {
+    this->data_log = SPIFFS.open(data.log_file, FILE_READ);
+
+    String txt = "";
+
+    while(this->data_log.available()){
+        txt += this->data_log.readStringUntil('\n');
+    }
+
+    Serial.print(txt);
+
+    this->data_log.close();
+}
+
+void FlashHandler::flush() {
+
+    File root = SPIFFS.open("/");
+    File file = root.openNextFile("r");
+    String txt;
+
+    while(file){
+
+        Serial.print("PRINTING FILE CONTENT: ");
+        Serial.println(file.name());
+        while(file.available()){
+            txt = file.readStringUntil('\n');
+            Serial.println(txt);
+        }
+
+        Serial.print("DELETING FILE: ");
+        Serial.print(file.name());
+        Serial.println(" ...");
+
+        SPIFFS.remove(file.name());
+
+        file = root.openNextFile("r");
+    }
+
+}
+
 void FlashHandler::setup_spiffs(Data &data) {
 
     uint8_t card_type;

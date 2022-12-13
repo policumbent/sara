@@ -22,7 +22,9 @@ void test_memory(){
     FlashHandler flash = FlashHandler(data);
     data.timestamp = data.ntp_timestamp = data.gps_timestamp = DateTime(time(nullptr));
     data.log_file = "test_sara_write";
+    // flash.flush(); --> be careful to export before testing
     flash.write_flash(data);
+    flash.read_flash(data);
 }
 
 void test_sd(){
@@ -31,4 +33,5 @@ void test_sd(){
     data.timestamp = data.ntp_timestamp = data.gps_timestamp = DateTime(time(nullptr));
     data.log_file = "test_sara_write";
     sd.write_sd(data);
+    sd.read_sd(data);
 }
