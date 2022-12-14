@@ -4,10 +4,37 @@ SDHandler::SDHandler(Data &data, int cs) {
     setup_sd(data, cs);
 }
 
-void SDHandler::write_sd(Data &data) {
+void SDHandler::flush() {
+
+    File root = SD.open("/");
+    File file = root.openNextFile("r");
+    String txt;
+
+    while(file){
+
+        Serial.print("PRINTING FILE CONTENT: ");
+        Serial.println(file.name());
+        while(file.available()){
+            txt = file.readStringUntil('\n');
+            Serial.println(txt);
+        }
+
+        Serial.print("DELETING FILE: ");
+        Serial.print(file.name());
+        Serial.println(" ...");
+
+        SD.remove(file.name());
+
+        file = root.openNextFile("r");
+    }
+
+}
+
+
+void SDHandler::write_sd(Data &data, const char *mode) {
 
     // printing on file
-    this->data_log = SD.open(data.log_file, FILE_APPEND);
+    this->data_log = SD.open(data.log_file, mode);
 
     // and write just once on the file --> this should
     // reduce errors
@@ -24,16 +51,12 @@ void SDHandler::write_sd(Data &data) {
     this->data_log.close();
 }
 
-void SDHandler::read_sd(Data &data) {
+void SDHandler::read_sd(Data &data, String &txt) {
     this->data_log = SD.open(data.log_file, FILE_READ);
-
-    String txt = "";
 
     while(this->data_log.available()){
         txt += this->data_log.readStringUntil('\n');
     }
-
-    Serial.print(txt);
 
     this->data_log.close();
 }

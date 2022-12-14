@@ -7,10 +7,10 @@ FlashHandler::FlashHandler(Data &data) {
 }
 
 
-void FlashHandler::write_flash(Data &data) {
+void FlashHandler::write_flash(Data &data, const char *mode) {
 
     // printing on file
-    this->data_log = SPIFFS.open(data.log_file, FILE_APPEND);
+    this->data_log = SPIFFS.open(data.log_file, mode);
 
     // and write just once on the file --> this should
     // reduce errors
@@ -27,16 +27,12 @@ void FlashHandler::write_flash(Data &data) {
     this->data_log.close();
 }
 
-void FlashHandler::read_flash(Data &data) {
+void FlashHandler::read_flash(Data &data, String &txt) {
     this->data_log = SPIFFS.open(data.log_file, FILE_READ);
-
-    String txt = "";
 
     while(this->data_log.available()){
         txt += this->data_log.readStringUntil('\n');
     }
-
-    Serial.print(txt);
 
     this->data_log.close();
 }

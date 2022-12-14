@@ -12,8 +12,8 @@ private:
     char buffer[256];
 public:
     explicit FlashHandler(Data &data);
-    void write_flash(Data&);
-    void read_flash(Data&);
+    void write_flash(Data&, const char* mode = FILE_APPEND);
+    void read_flash(Data&, String &txt);
     void flush();
 private:
     void setup_spiffs(Data &);
