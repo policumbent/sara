@@ -2,11 +2,11 @@
 
 const bool WIFI_DEBUG         = true;
 const bool SD_DEBUG           = true;
-const bool SPIFFS_DEBUG       = false;
+const bool SPIFFS_DEBUG       = false; // can not be true if SD is true
 const bool MAGNETOMETER_DEBUG = true;
 const bool BME_DEBUG          = true;
 const bool NTP_DEBUG          = true;
-const bool ANEMOMETER_DEBUG   = false;
+const bool ANEMOMETER_DEBUG   = true;
 const bool WEBSERVER_DEBUG    = true;
 const bool EPAPER_DEBUG       = true;
 const bool GPS_DEBUG          = true;

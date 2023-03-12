@@ -184,6 +184,7 @@ void setup() {
     delay(10);
 
     getData(); // initializes Data first
+    getData().set_log(false); // sets the log file to the default data.csv
 
     delay(10);
 
@@ -207,8 +208,8 @@ void setup() {
     }
 
     // some problems with the SD card lead to this solution, TODO: find better solution
-    //digitalWrite(cs_sd, HIGH);
-    //digitalWrite(cs_mag, HIGH);
+    digitalWrite(cs_sd, HIGH);
+    digitalWrite(cs_mag, HIGH);
 
     delay(10);
 
@@ -277,17 +278,12 @@ void loop() {
       getNTP().get_data(getData());
   }
 
-  digitalWrite(cs_sd, LOW);
-  digitalWrite(cs_mag, HIGH);
-
   if(check<SD_DEBUG>()){
       getSdHandler().write_sd(getData());
   }else if(check<SPIFFS_DEBUG>()){
       getFlashHandler().write_flash(getData());
   }
 
-  digitalWrite(cs_sd, LOW);
-  digitalWrite(cs_mag, LOW);
 
   if (check<MAGNETOMETER_DEBUG>()){
       getAngleSensor().get_data(getData());
