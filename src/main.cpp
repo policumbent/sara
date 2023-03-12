@@ -7,6 +7,7 @@
 #include "Connections.h"
 
 #define CICLE_MSEC 1000
+#define SCREEN_UPDATE_MSEC 30000
 
 #ifdef DEBUG
 #include "Plotter.h"
@@ -21,6 +22,7 @@ const unsigned int cs_sd = 2;
 
 unsigned long now;
 unsigned long last_msg;
+unsigned long last_seen;
 
 /*
  * getters and setters avoid the possibility
@@ -82,10 +84,10 @@ Sensors<Adafruit_ADS1115> &getAds() {
     }
 }
 
-Sensors<RTC_DS1307> &getRtc() {
+Sensors<TinyGPSPlus> &getGPS() {
     try {
-        static Sensors<RTC_DS1307> rtc = Sensors<RTC_DS1307>();
-        return rtc;
+        static Sensors<TinyGPSPlus> gps = Sensors<TinyGPSPlus>();
+        return gps;
     }catch (const std::exception &ex) {
         Serial.println("EXCEPTION");
         Serial.println(ex.what());
@@ -93,10 +95,10 @@ Sensors<RTC_DS1307> &getRtc() {
     }
 }
 
-Sensors<TinyGPSPlus> &getGPS() {
-    try {
-        static Sensors<TinyGPSPlus> gps = Sensors<TinyGPSPlus>();
-        return gps;
+Sensors<NTPClient> &getNTP(){
+    try{
+        static Sensors<NTPClient> ntp = Sensors<NTPClient>();
+        return ntp;
     }catch (const std::exception &ex) {
         Serial.println("EXCEPTION");
         Serial.println(ex.what());
@@ -126,6 +128,17 @@ FlashHandler &getFlashHandler(){
     }
 }
 
+EpaperDisplay &getEpaper(){
+    try {
+        static EpaperDisplay epd = EpaperDisplay();
+        return epd;
+    }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+
 WebServer &getWebServer(){
     try {
         static WebServer web_server = WebServer(&getData());
@@ -136,6 +149,22 @@ WebServer &getWebServer(){
         exit(EXIT_FAILURE);
     }
 }
+
+void draw_print(){
+
+    getEpaper().display->setRotation(3);
+    getEpaper().display->setFont(&FreeMono9pt7b);
+    getEpaper().display->setTextColor(GxEPD_BLACK);
+    int16_t tbx, tby; uint16_t tbw, tbh;
+    getEpaper().display->getTextBounds(getEpaper().get_to_print(), 0, 0, &tbx, &tby, &tbw, &tbh);
+    // center bounding box by transposition of origin:
+    uint16_t x = ((getEpaper().display->width() - tbw) / 2) - tbx;
+    uint16_t y = ((getEpaper().display->height() - tbh) / 2) - tby;
+    //display.fillScreen(GxEPD_WHITE);
+    getEpaper().display->setCursor(x, y);
+    getEpaper().display->print(getEpaper().get_to_print());
+}
+
 
 
 void setup() {
@@ -158,16 +187,6 @@ void setup() {
 
     delay(10);
 
-    if(check<RTC_DEBUG>()){
-        getRtc();
-        getRtc().get_data(getData()); // doesn't have a debug clause
-        getData().set_log(true);
-    }else{
-        getData().set_log(false);
-    }
-
-    delay(10);
-
     if(check<BME_DEBUG>()){
         getBme();
     }
@@ -179,9 +198,6 @@ void setup() {
 
     delay(10);
 
-    //digitalWrite(cs_mag, LOW);
-    //digitalWrite(cs_sd, HIGH);
-
     // the SD must be initialized before the MAGNETIC ENCODER
     // they both communicate using the SPI protocol BUT SD is configured on SPI_0 while the encoder is on SPI_1
     if(check<SD_DEBUG>()){
@@ -191,8 +207,8 @@ void setup() {
     }
 
     // some problems with the SD card lead to this solution, TODO: find better solution
-    digitalWrite(cs_sd, HIGH);
-    digitalWrite(cs_mag, HIGH);
+    //digitalWrite(cs_sd, HIGH);
+    //digitalWrite(cs_mag, HIGH);
 
     delay(10);
 
@@ -200,15 +216,26 @@ void setup() {
       getAngleSensor();
     }
 
-    if(check<EPAPER_DEBUG>()){
-        init_display();
-    }
-
     if(check<WIFI_DEBUG>()){
         setupMQTT();
         if(check<WEBSERVER_DEBUG>()){
             getWebServer();
         }
+    }
+
+    delay(10);
+    // must necessarily be declared after the Wifi
+    if(check<NTP_DEBUG>()){
+        getNTP();
+        getNTP().get_data(getData()); // doesn't have a debug clause
+        getData().set_log(true);
+    }else{
+        getData().set_log(false);
+    }
+
+    if(check<EPAPER_DEBUG>()){
+        getEpaper();
+        getEpaper().print_on_display(String("SETUP HAS COMPLETED AND EPD INITIALIZED"), draw_print);
     }
 
 #ifdef DEBUG
@@ -222,14 +249,16 @@ void setup() {
 #endif
 
     now = millis();
+    last_seen = now;
 }
 
 void loop() {
 
-  connect();
-
   last_msg = now;
 
+  if(check<WIFI_DEBUG>()) {
+      connect();
+  }
   if (check<BME_DEBUG>()){
       getBme().get_data(getData());
   }else {
@@ -244,10 +273,8 @@ void loop() {
       getData().wind_speed = 0.0;
   }
 
-  if (check<RTC_DEBUG>()){
-      getRtc().get_data(getData());
-  }else {
-      getData().timestamp = DateTime((uint32_t) 0);
+  if (check<NTP_DEBUG>()){
+      getNTP().get_data(getData());
   }
 
   digitalWrite(cs_sd, LOW);
@@ -270,10 +297,6 @@ void loop() {
 
   publishMQTT(getData());
 
-  if(check<EPAPER_DEBUG>()){
-      display_data(getData());
-  }
-
   if(check<GPS_DEBUG>()){
       while(getGPSSerial().available()){
           getData().gps_char = getGPSSerial().read();
@@ -288,8 +311,16 @@ void loop() {
 
   now = millis();
 
+  if(now - last_seen > SCREEN_UPDATE_MSEC){
+      if(check<EPAPER_DEBUG>()){
+          getEpaper().display_data(getData(), draw_print);
+      }
+      last_seen = now;
+  }
+
+  now = millis();
+
   if(now - last_msg < CICLE_MSEC){
     delay(CICLE_MSEC - (now - last_msg));
   }
-
 }

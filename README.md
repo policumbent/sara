@@ -52,5 +52,6 @@ Stazione per l'Analisi di Raffiche Avverse
 - SD: save data
 
 #### Board
-- ESP 32 WROOM
+- ESP 32 WROOM DEVKIT V2
 
+#### C

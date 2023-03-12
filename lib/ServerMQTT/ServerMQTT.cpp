@@ -22,6 +22,11 @@ void init_client(const char *mqtt_server, int mqtt_port, void (*callback) (const
   client.setCallback(callback);
 }
 
+void init_client(IPAddress mqtt_server, int mqtt_port, void (*callback) (const char *, uint8_t *, unsigned int), PubSubClient &client) {
+    client.setServer(mqtt_server, mqtt_port);
+    client.setCallback(callback);
+}
+
 void reconnect(const char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
     // Loop until we're reconnected
     while (!client.connected()) {

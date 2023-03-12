@@ -8,6 +8,7 @@ public:
     String mqtt_server;
     String mqtt_usr;
     String mqtt_pass;
+    uint32_t mqtt_ip;
     long mqtt_port;
 
 public:

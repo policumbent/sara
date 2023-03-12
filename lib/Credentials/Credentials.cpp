@@ -8,5 +8,5 @@ Info::Info(){
     this->mqtt_usr = MQTT_USER;
     this->mqtt_pass = MQTT_PASSWORD;
     this->mqtt_port = MQTT_PORT;
-
+    this->mqtt_ip = MQTT_IP;
 }

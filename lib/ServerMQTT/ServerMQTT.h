@@ -10,4 +10,4 @@ void client_read(const char *topic, PubSubClient &client);
 
 void init_wifi(const char* ssid, const char* password);
 void init_client(const char *mqtt_server, int mqtt_port, void (*callback) (const char *, uint8_t *, unsigned int), PubSubClient &client);
-
+void init_client(IPAddress mqtt_server, int mqtt_port, void (*callback) (const char *, uint8_t *, unsigned int), PubSubClient &client);

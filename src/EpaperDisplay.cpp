@@ -1,75 +1,41 @@
 #include "EpaperDisplay.h"
 
-unsigned char image[5760];
+void EpaperDisplay::construct_text(Data &data){
+    this->to_print = "";
+    char timestamp[80];
 
-Epd display;
-Paint paint(image, 256, 180);
-char buffer[8];
+    sprintf(timestamp, "%02d/%02d/%02d %02d:%02d:%02d",
+            data.timestamp.year(),data.timestamp.month(), data.timestamp.day(),
+            data.timestamp.hour(), data.timestamp.minute(), data.timestamp.second());
 
+    this->to_print =
+               "Temp: " + String(data.temperature, 0) + " °C" +
+               "\nHumidity: " + String(data.humidity, 0) + " %" +
+               "\nPressure: " + String(data.pressure, 0) + " hPa" +
+               "\nW-speed: " + String(data.wind_speed, 2) + " m/s" +
+               "\nW-dir: " + String(data.wind_direction, 0) + " °";
 
-void init_display(){
-
-    if(display.Init(lut_full_update) != 0){
-        Serial.println("E-PAPER INIT FAILED");
-        while(1);
-    }else {
-        Serial.println("E-PAPER CORRECTLY INITIALIZED");
-    }
-
-    /**
-     *  there are 2 memory areas embedded in the e-paper display
-     *  and once the display is refreshed, the memory area will be auto-toggled,
-     *  i.e. the next action of SetFrameMemory will set the other memory area
-     *  therefore you have to clear the frame memory twice.
-     */
-    display.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-    display.DisplayFrame();
-    display.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-    display.DisplayFrame();
-
-    paint.SetRotate(ROTATE_0);
-    paint.Clear(COLORED);
-    paint.DrawStringAt(20, 4, "Team Policumbent", &Font16, UNCOLORED);
-    paint.DrawStringAt(30, 44, "Temperature: 0.0", &Font16, UNCOLORED);
-    paint.DrawStringAt(30, 74, "Pressure: 0.0", &Font16, UNCOLORED);
-    paint.DrawStringAt(30, 104, "Humidity: 0.0", &Font16, UNCOLORED);
-    paint.DrawStringAt(30, 134, "Wind Speed: 0.0", &Font16, UNCOLORED);
-    paint.DrawStringAt(30, 164, "Wind Direction: 0.0", &Font16, UNCOLORED);
-
-    display.SetFrameMemory(paint.GetImage(), 0, 10, paint.GetWidth(), paint.GetHeight());
-    display.DisplayFrame();
 }
 
-void display_data(Data &data){
+EpaperDisplay::EpaperDisplay() {
+    this->io = new GxIO_Class(SPI, /*CS=5*/ 26, /*DC=*/ 25, /*RST=*/ 33);
+    this->display = new GxEPD_Class(*this->io, /*RST=*/ 33, /*BUSY=*/ 27);
 
-    display.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-    display.DisplayFrame();
-    display.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-    display.DisplayFrame();
-
-    paint.Clear(COLORED);
-    paint.DrawStringAt(20, 4, "Team Policumbent", &Font16, UNCOLORED);
-
-    paint.DrawStringAt(30, 44, "Temperature: ", &Font16, UNCOLORED);
-    dtostrf(data.temperature, 1, 2, buffer);
-    paint.DrawStringAt(70, 44, buffer, &Font16, UNCOLORED);
-
-    paint.DrawStringAt(30, 74, "Pressure: ", &Font16, UNCOLORED);
-    dtostrf(data.pressure, 1, 2, buffer);
-    paint.DrawStringAt(70, 44, buffer, &Font16, UNCOLORED);
-
-    paint.DrawStringAt(30, 104, "Humidity: ", &Font16, UNCOLORED);
-    dtostrf(data.humidity, 1, 2, buffer);
-    paint.DrawStringAt(70, 44, buffer, &Font16, UNCOLORED);
-
-    paint.DrawStringAt(30, 134, "Wind Speed: ", &Font16, UNCOLORED);
-    dtostrf(data.wind_speed, 1, 2, buffer);
-    paint.DrawStringAt(70, 44, buffer, &Font16, UNCOLORED);
-
-    paint.DrawStringAt(30, 164, "Wind Direction: ", &Font16, UNCOLORED);
-    dtostrf(data.wind_direction, 1, 2, buffer);
-    paint.DrawStringAt(70, 44, buffer, &Font16, UNCOLORED);
-
-    display.SetFrameMemory(paint.GetImage(), 0, 10, paint.GetWidth(), paint.GetHeight());
-    display.DisplayFrame();
+    this->display->init(); // enable diagnostic output on Serial
 }
+
+void EpaperDisplay::display_data(Data &data, void (*draw_callback)(void)) {
+    this->construct_text(data);
+    this->display->drawPaged(draw_callback);
+}
+
+void EpaperDisplay::print_on_display(String to_print, void (*draw_callback)(void)) {
+    this->display->eraseDisplay();
+    this->to_print = to_print;
+    this->display->drawPaged(draw_callback);
+}
+
+String EpaperDisplay::get_to_print() {
+    return this->to_print;
+}
+

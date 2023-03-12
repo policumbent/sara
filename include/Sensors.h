@@ -8,6 +8,7 @@
 #include <Adafruit_Sensor.h>
 #include <SoftwareSerial.h>
 #include <TinyGPSPlus.h>
+#include <HardwareSerial.h>
 #include <NTPClient.h>
 #include <SD.h>
 #include "AS5048A.h"
@@ -23,6 +24,8 @@ const double VOLTAGE_MAX = 2.0;
 const double MIN_SPEED = 0.0;
 const double MAX_SPEED = 32.4;
 
+HardwareSerial SerialGPS(2);
+WiFiUDP *wiudp;
 
 template<typename sensor_T>
 class Sensors {
@@ -57,19 +60,20 @@ template<typename T> Sensors<T>::~ Sensors(){
 template<>
 inline
 void Sensors<NTPClient>::setup(){
-    this->s = new NTPClient(*(new WiFiUDP()));
+    wiudp = new WiFiUDP();
+    this->s = new NTPClient(*wiudp);
 
     if(!this->s){
-        Serial.println("Problems setting up GPS module");
+        Serial.println("Problems setting up NTP Client");
         if(check<WIFI_DEBUG>()){
             publish("CLIENT NTP: ", "NOT WORKING");
         }
         loop_infinite();
     }
-
+    this->s->setPoolServerName(POOLING_SERVER);
     this->s->begin();
-    Serial.println("CORRECTLY INITIALIZED: CLIENT NTP");
 
+    Serial.println("CORRECTLY INITIALIZED: CLIENT NTP");
 }
 
 
@@ -77,6 +81,7 @@ template<>
 inline
 void Sensors<TinyGPSPlus>::setup(){
     this->s = new TinyGPSPlus();
+    SerialGPS.begin(9600, SERIAL_8N1, 16, 17);
     if(!this->s){
         Serial.println("Problems setting up GPS module");
         if(check<WIFI_DEBUG>()){
@@ -236,5 +241,5 @@ template<>
 inline
 void Sensors<NTPClient>::get_data(Data& data){
     this->s->update();
-    data.ntp_timestamp = DateTime(this->s->getEpochTime());
+    data.timestamp = DateTime(this->s->getEpochTime());
 }

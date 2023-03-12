@@ -24,7 +24,12 @@ void setupMQTT(){
     printWifiInfo();
 
     init_wifi(cred.ssid.c_str(), cred.password.c_str());
-    init_client(cred.mqtt_server.c_str(), cred.mqtt_port, callback, client);
+
+    if(USE_MQTT_IP){
+        init_client(IPAddress(cred.mqtt_ip), cred.mqtt_port, callback, client);
+    }else {
+        init_client(cred.mqtt_server.c_str(), cred.mqtt_port, callback, client);
+    }
 }
 
 void callback(const char *topic, byte *message, unsigned int length) {

@@ -6,7 +6,7 @@ class Data {
 public:
     float temperature,      //  °C
           humidity,         //  relative
-          pressure;         //  hPa
+          pressure;        //  hPa
     double wind_speed,      //  m/s
            wind_direction;  //  degrees
     double latitude,        //  degrees

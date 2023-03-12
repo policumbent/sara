@@ -1,12 +1,34 @@
 #pragma once
 
+#include <Wstring.h>
 #include "Data.h"
-#include <Arduino.h>
-#include "epd1in54.h"
-#include "epdpaint.h"
+#include <GxEPD.h>
+#include <GxGDEH0154D67/GxGDEH0154D67.h>  // 1.54" b/w
+
+#include <Fonts/FreeMono9pt7b.h>
+
+#include <GxIO/GxIO_SPI/GxIO_SPI.h>
+#include <GxIO/GxIO.h>
 
 #define COLORED     0
 #define UNCOLORED   1
 
-void init_display();
-void display_data(Data &);
+class EpaperDisplay{
+private:
+    String to_print;
+    GxIO_Class *io;
+
+public:
+    GxEPD_Class *display;
+
+public:
+    EpaperDisplay();
+    void display_data(Data &, void (*)(void));
+    void print_on_display(String to_print, void (*draw_callback)(void));
+
+    String get_to_print();
+
+private:
+    void construct_text(Data &data);
+    void draw_print();
+};
