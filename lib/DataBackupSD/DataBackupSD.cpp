@@ -66,8 +66,8 @@ void SDHandler::setup_sd(Data &data, int cs) {
     uint8_t card_type;
 
     // TODO: test this solution
-    SPI.setDataMode(SPI_MODE1); // the magnetic encoder communicates with SPI1: CPOL=0 CPHA=1 so we force also the SD card
-    SPI.setBitOrder(MSBFIRST); // the magnetic encoder communicates in MSBFIRST
+    //SPI.setDataMode(SPI_MODE1); // the magnetic encoder communicates with SPI1: CPOL=0 CPHA=1 so we force also the SD card
+    //SPI.setBitOrder(MSBFIRST); // the magnetic encoder communicates in MSBFIRST
 
     while(!SD.begin(cs, SPI, 3000000)) {
         Serial.println("Impossible to connect SD reader");
