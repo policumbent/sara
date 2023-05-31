@@ -29,17 +29,6 @@ unsigned long last_seen;
  * to have unhandled exceptions which could lead to
  * reboots
  * */
-SoftwareSerial &getGPSSerial(){
-    try {
-        static SoftwareSerial gps_serial(25, 24, false);
-        return gps_serial;
-    }catch (const std::exception &ex) {
-        Serial.println("EXCEPTION");
-        Serial.println(ex.what());
-        exit(EXIT_FAILURE);
-    }
-}
-
 Data &getData() {
     try {
         static Data data = Data();
@@ -169,7 +158,6 @@ void draw_print(){
 
 void setup() {
     Serial.begin(115200);
-    getGPSSerial().begin(9600);
 
     Serial.println("BEGIN");
 
@@ -286,8 +274,6 @@ void loop() {
       getFlashHandler().write_flash(getData());
   }
 
-  digitalWrite(cs_sd, LOW);
-  digitalWrite(cs_mag, LOW);
 
   if (check<MAGNETOMETER_DEBUG>()){
       getAngleSensor().get_data(getData());
@@ -298,10 +284,7 @@ void loop() {
   publishMQTT(getData());
 
   if(check<GPS_DEBUG>()){
-      while(getGPSSerial().available()){
-          getData().gps_char = getGPSSerial().read();
-          getGPS().get_data(getData());
-      }
+      getGPS().get_data(getData());
   }
 
 #ifdef DEBUG

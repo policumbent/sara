@@ -176,24 +176,28 @@ template<>
 inline
 void Sensors<TinyGPSPlus>::get_data(Data &data) {
     // the message must be transmitted completely before it can be read
-    if(this->s->encode((char) data.gps_char)){
+    char c;
+    while(SerialGPS.available()){
+        c = (char) SerialGPS.read();
+        if(this->s->encode(c)){
 
-        if(this->s->location.isValid()){
-        data.longitude = this->s->location.lng();
-        data.latitude = this->s->location.lat();
-        }
-        if(this->s->altitude.isValid()){
-            data.altitude = this->s->altitude.meters();
-        }
-        if(this->s->date.isValid() && this->s->time.isValid()){
-            data.gps_timestamp = DateTime(
-                    this->s->date.year(),
-                    this->s->date.month(),
-                    this->s->date.day(),
-                    this->s->time.hour(),
-                    this->s->time.minute(),
-                    this->s->time.second()
-                    );
+            if(this->s->location.isValid()){
+            data.longitude = this->s->location.lng();
+            data.latitude = this->s->location.lat();
+            }
+            if(this->s->altitude.isValid()){
+                data.altitude = this->s->altitude.meters();
+            }
+            if(this->s->date.isValid() && this->s->time.isValid()){
+                data.gps_timestamp = DateTime(
+                        this->s->date.year(),
+                        this->s->date.month(),
+                        this->s->date.day(),
+                        this->s->time.hour(),
+                        this->s->time.minute(),
+                        this->s->time.second()
+                        );
+            }
         }
     }
 }
