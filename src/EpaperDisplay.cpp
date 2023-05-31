@@ -18,7 +18,7 @@ void EpaperDisplay::construct_text(Data &data){
 }
 
 EpaperDisplay::EpaperDisplay() {
-    this->io = new GxIO_Class(SPI, /*CS=5*/ 26, /*DC=*/ 25, /*RST=*/ 33);
+    this->io = new GxIO_Class(SPI, /*CS=*/ 26, /*DC=*/ 25, /*RST=*/ 33);
     this->display = new GxEPD_Class(*this->io, /*RST=*/ 33, /*BUSY=*/ 27);
 
     this->display->init(); // enable diagnostic output on Serial

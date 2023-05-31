@@ -198,24 +198,6 @@ void setup() {
 
     delay(10);
 
-    // the SD must be initialized before the MAGNETIC ENCODER
-    // they both communicate using the SPI protocol BUT SD is configured on SPI_0 while the encoder is on SPI_1
-    if(check<SD_DEBUG>()){
-        getSdHandler();
-    }else if(check<SPIFFS_DEBUG>()){
-        getFlashHandler();
-    }
-
-    // some problems with the SD card lead to this solution, TODO: find better solution
-    //digitalWrite(cs_sd, HIGH);
-    //digitalWrite(cs_mag, HIGH);
-
-    delay(10);
-
-    if(check<MAGNETOMETER_DEBUG>()){
-      getAngleSensor();
-    }
-
     if(check<WIFI_DEBUG>()){
         setupMQTT();
         if(check<WEBSERVER_DEBUG>()){
@@ -231,6 +213,24 @@ void setup() {
         getData().set_log(true);
     }else{
         getData().set_log(false);
+    }
+
+    // the SD must be initialized before the MAGNETIC ENCODER
+    // they both communicate using the SPI protocol BUT SD is configured on SPI_0 while the encoder is on SPI_1
+    if(check<SD_DEBUG>()){
+        getSdHandler();
+    }else if(check<SPIFFS_DEBUG>()){
+        getFlashHandler();
+    }
+
+    // some problems with the SD card lead to this solution, TODO: find better solution
+    //digitalWrite(cs_sd, HIGH);
+    //digitalWrite(cs_mag, HIGH);
+
+    delay(10);
+
+    if(check<MAGNETOMETER_DEBUG>()){
+        getAngleSensor();
     }
 
     if(check<EPAPER_DEBUG>()){
