@@ -10,6 +10,7 @@ const bool ANEMOMETER_DEBUG   = true;
 const bool WEBSERVER_DEBUG    = true;
 const bool EPAPER_DEBUG       = true;
 const bool GPS_DEBUG          = true;
+const bool COMPASS_DEBUG      = true;
 
 template<const bool c>
 bool check(){return c;}

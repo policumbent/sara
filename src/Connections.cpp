@@ -68,7 +68,7 @@ void publishMQTT(Data &data) {
     Serial.print(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        publish("weather/ws1/timestamp", buffer);
+        publish("Policumbent/weather/ws1/timestamp", buffer);
     }
     // Convert the value to a char array
     dtostrf(data.temperature, 1, 2, buffer);
@@ -78,7 +78,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        publish("weather/ws1/temperature", buffer);
+        publish("Policumbent/weather/ws1/temperature", buffer);
     }
 
     // Convert the value to a char array
@@ -89,7 +89,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        publish("weather/ws1/humidity", buffer);
+        publish("Policumbent/weather/ws1/humidity", buffer);
     }
 
     // Convert the value to a char array
@@ -99,7 +99,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()) {
-        publish("weather/ws1/pressure", buffer);
+        publish("Policumbent/weather/ws1/pressure", buffer);
     }
 
     // Convert the value to a char array
@@ -109,7 +109,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        publish("weather/ws1/speed", buffer);
+        publish("Policumbent/weather/ws1/speed", buffer);
     }
 
     // Convert the value to a char array
@@ -119,7 +119,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        publish("weather/ws1/direction", buffer);
+        publish("Policumbent/weather/ws1/direction", buffer);
     }
 
     // Convert the value to a char array
@@ -129,7 +129,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        publish("weather/ws1/latitude", buffer);
+        publish("Policumbent/weather/ws1/latitude", buffer);
     }
 
     // Convert the value to a char array
@@ -139,7 +139,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        publish("weather/ws1/longitude", buffer);
+        publish("Policumbent/weather/ws1/longitude", buffer);
     }
 
     // Convert the value to a char array
@@ -149,7 +149,7 @@ void publishMQTT(Data &data) {
     Serial.println(buffer);
 #endif
     if (check<WIFI_DEBUG>()){
-        publish("weather/ws1/altitude", buffer);
+        publish("Policumbent/weather/ws1/altitude", buffer);
     }
 
     led_off();

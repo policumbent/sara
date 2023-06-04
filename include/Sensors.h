@@ -6,6 +6,7 @@
 #include <Adafruit_ADS1X15.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_Sensor.h>
+#include <Adafruit_HMC5883_U.h>
 #include <SoftwareSerial.h>
 #include <TinyGPSPlus.h>
 #include <HardwareSerial.h>
@@ -76,6 +77,26 @@ void Sensors<NTPClient>::setup(){
     Serial.println("CORRECTLY INITIALIZED: CLIENT NTP");
 }
 
+template<>
+inline
+void Sensors<Adafruit_HMC5883_Unified>::setup(){
+    this->s = new Adafruit_HMC5883_Unified();
+
+    sensor_t sens;
+
+    if(!this->s->begin()){
+        Serial.println("Problems setting up compass");
+        if(check<WIFI_DEBUG>()){
+            publish("COMPASS MODULE: ", "NOT WORKING");
+        }
+        loop_infinite();
+    }
+
+    this->s->getSensor(&sens);
+    //TODO: Implement sensor info
+
+    Serial.println("CORRECTLY INITIALIZED: COMPASS");
+}
 
 template<>
 inline
@@ -209,6 +230,38 @@ void Sensors<Adafruit_BME280>::get_data(Data& data) {
     data.humidity = this->s->readHumidity();
     data.pressure = this->s->readPressure() / 100.0F;
 }
+
+template<>
+inline
+void Sensors<Adafruit_HMC5883_Unified>::get_data(Data &data){
+
+    sensors_event_t event;
+    this->s->getEvent(&event);
+
+    double heading = atan2(event.magnetic.y, event.magnetic.x);
+    double declinationAngle = 0;
+    if(check<BATTLE_MOUNTAIN>()){
+        declinationAngle = 0.219; // This is calibrated to BM VALUES
+    }else{
+        declinationAngle = 0.067; // This is calibrated to TURIN VALUES
+    }
+
+    heading += declinationAngle;
+
+    // Correct for when signs are reversed.
+    if(heading < 0)
+        heading += 2*PI;
+
+    // Check for wrap due to addition of declination.
+    if(heading > 2*PI)
+        heading -= 2*PI;
+
+    // Convert radians to degrees for readability.
+    double headingDegrees = heading * 180/M_PI;
+
+    data.pointingDegrees = headingDegrees;
+}
+
 
 template<>
 inline

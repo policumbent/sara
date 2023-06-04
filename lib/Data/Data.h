@@ -11,7 +11,8 @@ public:
            wind_direction;  //  degrees
     double latitude,        //  degrees
            longitude,       //  degrees
-           altitude;        //  m
+           altitude,        //  m
+           pointingDegrees; // respect to Nord
     int gps_char;   // a character which must be passed to the gps library from serial
     bool set;
 

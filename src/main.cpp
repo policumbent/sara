@@ -7,7 +7,7 @@
 #include "Connections.h"
 
 #define CICLE_MSEC 1000
-#define SCREEN_UPDATE_MSEC 30000
+#define SCREEN_UPDATE_MSEC 10000
 
 #ifdef DEBUG
 #include "Plotter.h"
@@ -77,6 +77,17 @@ Sensors<TinyGPSPlus> &getGPS() {
     try {
         static Sensors<TinyGPSPlus> gps = Sensors<TinyGPSPlus>();
         return gps;
+    }catch (const std::exception &ex) {
+        Serial.println("EXCEPTION");
+        Serial.println(ex.what());
+        exit(EXIT_FAILURE);
+    }
+}
+
+Sensors<Adafruit_HMC5883_Unified> &getCompass() {
+    try {
+        static Sensors<Adafruit_HMC5883_Unified> compass = Sensors<Adafruit_HMC5883_Unified>();
+        return compass;
     }catch (const std::exception &ex) {
         Serial.println("EXCEPTION");
         Serial.println(ex.what());
@@ -164,8 +175,8 @@ void setup() {
     pinMode(cs_sd, GPIO_MODE_OUTPUT);
     pinMode(cs_mag, GPIO_MODE_OUTPUT);
 
-    digitalWrite(cs_sd, LOW);
-    digitalWrite(cs_mag, HIGH);
+    //digitalWrite(cs_sd, LOW);
+    //digitalWrite(cs_mag, HIGH);
 
     led_off();
 
@@ -287,12 +298,20 @@ void loop() {
       getGPS().get_data(getData());
   }
 
+  if(check<COMPASS_DEBUG>()){
+      getCompass().get_data(getData());
+  }
+
 #ifdef DEBUG
   wind_speed = getData().windSpeed;
   p.Plot();
 #endif
 
+  // It is better to disable the interrupts before
+  portDISABLE_INTERRUPTS();
   now = millis();
+  portENABLE_INTERRUPTS();
+
 
   if(now - last_seen > SCREEN_UPDATE_MSEC){
       if(check<EPAPER_DEBUG>()){
@@ -301,7 +320,9 @@ void loop() {
       last_seen = now;
   }
 
+  portDISABLE_INTERRUPTS();
   now = millis();
+  portENABLE_INTERRUPTS();
 
   if(now - last_msg < CICLE_MSEC){
     delay(CICLE_MSEC - (now - last_msg));
