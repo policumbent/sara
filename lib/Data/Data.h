@@ -16,6 +16,8 @@ public:
     int gps_char;   // a character which must be passed to the gps library from serial
     bool set;
 
+    unsigned long last_tick;
+
     DateTime timestamp;
     DateTime gps_timestamp;
     DateTime ntp_timestamp;
@@ -24,4 +26,6 @@ public:
     Data();
     ~Data();
     void set_log(bool use_timestamp);
+    void update_timestamp();
+    String to_text();
 };

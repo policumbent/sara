@@ -24,11 +24,10 @@ public:
 public:
     EpaperDisplay();
     void display_data(Data &, void (*)(void));
-    void print_on_display(String to_print, void (*draw_callback)(void));
+    void print_on_display(char *text, void (*draw_callback)(void));
 
     String get_to_print();
 
 private:
     void construct_text(Data &data);
-    void draw_print();
 };

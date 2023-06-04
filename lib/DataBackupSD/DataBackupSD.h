@@ -7,13 +7,16 @@
 
 class SDHandler{
 private:
+    String filename;
     File data_log;
-    char buffer[256];
+    int cs;
 public:
     explicit SDHandler(Data &, int cs);
-    void write_sd(Data &, const char * mode = FILE_APPEND);
+    void write_sd(String txt, const char * mode = FILE_APPEND);
     void read_sd(Data &, String &);
     void flush();
 private:
     void setup_sd(Data &, int cs);
+    bool prepare();
+    void deselect();
 };

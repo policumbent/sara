@@ -9,7 +9,8 @@ void EpaperDisplay::construct_text(Data &data){
             data.timestamp.hour(), data.timestamp.minute(), data.timestamp.second());
 
     this->to_print =
-               "Temp: " + String(data.temperature, 0) + " °C" +
+                "Timestamp: " + String(timestamp) +
+               "\nTemp: " + String(data.temperature, 0) + " °C" +
                "\nHumidity: " + String(data.humidity, 0) + " %" +
                "\nPressure: " + String(data.pressure, 0) + " hPa" +
                "\nW-speed: " + String(data.wind_speed, 2) + " m/s" +
@@ -29,9 +30,9 @@ void EpaperDisplay::display_data(Data &data, void (*draw_callback)(void)) {
     this->display->drawPaged(draw_callback);
 }
 
-void EpaperDisplay::print_on_display(String to_print, void (*draw_callback)(void)) {
+void EpaperDisplay::print_on_display(char *text, void (*draw_callback)(void)) {
     this->display->eraseDisplay();
-    this->to_print = to_print;
+    this->to_print = String(text);
     this->display->drawPaged(draw_callback);
 }
 

@@ -142,7 +142,6 @@ void Sensors<AS5048A>::setup(uint8_t arg_cs, bool debug) {
     this->s = new AS5048A(arg_cs, debug);
     this->s->begin();
     Serial.println("CORRECTLY INITIALIZED: MAGNETIC ENCODER");
-
 }
 
 template<>
@@ -184,8 +183,9 @@ void Sensors<Adafruit_BME280>::setup() {
         Serial.print("        ID of 0x60 represents a BME 280.\n");
         Serial.print("        ID of 0x61 represents a BME 680.\n");
 
-        publish("SENSORE BME: ", "NOT WORKING");
-
+        if(check<WIFI_DEBUG>()) {
+            publish("SENSORE BME: ", "NOT WORKING");
+        }
         loop_infinite();
     }
 
@@ -298,5 +298,5 @@ template<>
 inline
 void Sensors<NTPClient>::get_data(Data& data){
     this->s->update();
-    data.timestamp = DateTime(this->s->getEpochTime());
+    data.ntp_timestamp = DateTime(this->s->getEpochTime());
 }

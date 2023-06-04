@@ -27,18 +27,24 @@ void init_client(IPAddress mqtt_server, int mqtt_port, void (*callback) (const c
     client.setCallback(callback);
 }
 
+bool attempt_reconnection(const char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
+
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect(id, mqtt_user, mqtt_password)) {
+        Serial.println("connected");
+        return true;
+    } else {
+        Serial.println("failed, rc=");
+        Serial.print(client.state());
+        return false;
+    }
+}
+
 void reconnect(const char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
     // Loop until we're reconnected
     while (!client.connected()) {
-        Serial.print("Attempting MQTT connection...");
-        // Attempt to connect
-        if (client.connect(id, mqtt_user, mqtt_password)) {
-            Serial.println("connected");
-            // Subscribe
-            // client.subscribe("test/led");
-        } else {
-            Serial.print("failed, rc=");
-            Serial.print(client.state());
+        if(!attempt_reconnection(id, mqtt_user, mqtt_password, client)){
             Serial.println(" try again in 5 seconds");
             // Wait 5 seconds before retrying
             delay(5000);
@@ -54,9 +60,13 @@ void client_read(const char *topic, PubSubClient &client){
     client.subscribe(topic);
 }
 
-void client_connect(const char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client) {
+void client_connect(const char* id, const char *mqtt_user, const char *mqtt_password, PubSubClient &client, bool keep_trying) {
     if (!client.connected()) {
-        reconnect(id, mqtt_user, mqtt_password, client);
+        if(keep_trying) {
+            reconnect(id, mqtt_user, mqtt_password, client);
+        }else{
+            attempt_reconnection(id, mqtt_user, mqtt_password, client);
+        }
     }
     client.loop();
 }

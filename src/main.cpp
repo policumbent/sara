@@ -6,8 +6,10 @@
 #include "WebServer.h"
 #include "Connections.h"
 
-#define CICLE_MSEC 1000
-#define SCREEN_UPDATE_MSEC 10000
+#define TIME_PUBLISH_SERVER 3000
+#define TIME_SD_BACKUP 10000
+#define TIME_SPIFFS_LOG 1000
+#define TIME_SCREEN_UPDATE 10000
 
 #ifdef DEBUG
 #include "Plotter.h"
@@ -21,8 +23,10 @@ const unsigned int cs_mag = 5;
 const unsigned int cs_sd = 2;
 
 unsigned long now;
-unsigned long last_msg;
-unsigned long last_seen;
+unsigned long last_spiff_stage;
+unsigned long last_screen_refresh;
+unsigned long last_publish;
+unsigned long last_log;
 
 /*
  * getters and setters avoid the possibility
@@ -117,9 +121,9 @@ SDHandler &getSdHandler(){
     }
 }
 
-FlashHandler &getFlashHandler(){
+FlashHandler &getFlashHandler(bool staged = false){
     try {
-        static FlashHandler flash_handler = FlashHandler(getData());
+        static FlashHandler flash_handler = FlashHandler(getData(), staged);
         return flash_handler;
     }catch (const std::exception &ex) {
         Serial.println("EXCEPTION");
@@ -166,7 +170,6 @@ void draw_print(){
 }
 
 
-
 void setup() {
     Serial.begin(115200);
 
@@ -199,6 +202,7 @@ void setup() {
 
     if(check<WIFI_DEBUG>()){
         setupMQTT();
+        connect();
         if(check<WEBSERVER_DEBUG>()){
             getWebServer();
         }
@@ -209,6 +213,7 @@ void setup() {
     if(check<NTP_DEBUG>()){
         getNTP();
         getNTP().get_data(getData()); // doesn't have a debug clause
+        getData().timestamp = getData().ntp_timestamp;
         getData().set_log(true);
     }else{
         getData().set_log(false);
@@ -218,6 +223,7 @@ void setup() {
     // they both communicate using the SPI protocol BUT SD is configured on SPI_0 while the encoder is on SPI_1
     if(check<SD_DEBUG>()){
         getSdHandler();
+        getFlashHandler(true);
     }else if(check<SPIFFS_DEBUG>()){
         getFlashHandler();
     }
@@ -234,7 +240,7 @@ void setup() {
 
     if(check<EPAPER_DEBUG>()){
         getEpaper();
-        getEpaper().print_on_display(String("SETUP HAS COMPLETED AND EPD INITIALIZED"), draw_print);
+        getEpaper().print_on_display((char *) "SETUP HAS COMPLETED AND EPD INITIALIZED", draw_print);
     }
 
 #ifdef DEBUG
@@ -248,83 +254,98 @@ void setup() {
 #endif
 
     now = millis();
-    last_seen = now;
+    last_publish = last_log = last_spiff_stage = last_screen_refresh = now; // initializing time variables
+
+    getData().update_timestamp();
 }
 
 void loop() {
 
-  last_msg = now;
-
-  if(check<WIFI_DEBUG>()) {
-      connect();
-  }
-  if (check<BME_DEBUG>()){
+    if (check<BME_DEBUG>()){
       getBme().get_data(getData());
-  }else {
-      getData().temperature = 0.0;
-      getData().pressure = 0.0;
-      getData().humidity = 0.0;
-  }
+    }
+    if(check<COMPASS_DEBUG>()){
+        getCompass().get_data(getData());
+    }
 
-  if (check<ANEMOMETER_DEBUG>()){
+    if(check<GPS_DEBUG>()){
+        getGPS().get_data(getData());
+    }
+
+    if (check<ANEMOMETER_DEBUG>()){
       getAds().get_data(getData());
-  }else {
+    }else {
       getData().wind_speed = 0.0;
-  }
+    }
 
-  if (check<NTP_DEBUG>()){
+    if (check<MAGNETOMETER_DEBUG>()){
+        digitalWrite(cs_sd, HIGH);
+        digitalWrite(cs_mag, LOW);
+
+        getAngleSensor().get_data(getData());
+
+        digitalWrite(cs_sd, HIGH);
+        digitalWrite(cs_mag, HIGH);
+    }
+
+    if(check<WIFI_DEBUG>()) {
+        connect(false); // if the connection is not present we don't want to waste time
+    }
+
+    if (check<NTP_DEBUG>()){
       getNTP().get_data(getData());
-  }
+    }
 
-  digitalWrite(cs_sd, LOW);
-  digitalWrite(cs_mag, HIGH);
+    // we log into the SPIFFS buffer file frequently, but we backup to SD less frequently
+    if(now - last_spiff_stage >= TIME_SPIFFS_LOG) {
+      if (check<SPIFFS_DEBUG>()) {
+          getFlashHandler(true).write_flash(getData());
+      }
+      last_spiff_stage = now;
+    }
+    now = millis();
+    if(now - last_log >= TIME_SD_BACKUP) {
 
-  if(check<SD_DEBUG>()){
-      getSdHandler().write_sd(getData());
-  }else if(check<SPIFFS_DEBUG>()){
-      getFlashHandler().write_flash(getData());
-  }
+      digitalWrite(cs_sd, LOW);
+      digitalWrite(cs_mag, HIGH);
 
+      delay(10);
 
-  if (check<MAGNETOMETER_DEBUG>()){
-      getAngleSensor().get_data(getData());
-  }else {
-      getData().wind_direction = 0.0;
-  }
+      if (check<SD_DEBUG>()) {
+          String txt;
+          getFlashHandler(true).read_flash(getData(), txt);
+          getSdHandler().write_sd(txt);
+      } else if (check<SPIFFS_DEBUG>()) {
+          getFlashHandler().write_flash(getData());
+      }
 
-  publishMQTT(getData());
+      digitalWrite(cs_sd, HIGH);
+      digitalWrite(cs_mag, HIGH);
 
-  if(check<GPS_DEBUG>()){
-      getGPS().get_data(getData());
-  }
+      last_log = now;
+    }
 
-  if(check<COMPASS_DEBUG>()){
-      getCompass().get_data(getData());
-  }
+    now = millis();
+    if(now - last_publish >= TIME_PUBLISH_SERVER){
+        if(check<WIFI_DEBUG>()) {
+            publishMQTT(getData());
+        }
 
-#ifdef DEBUG
-  wind_speed = getData().windSpeed;
-  p.Plot();
-#endif
+        Serial.print(getData().to_text());
 
-  // It is better to disable the interrupts before
-  portDISABLE_INTERRUPTS();
-  now = millis();
-  portENABLE_INTERRUPTS();
+        last_publish = now;
+    }
 
+    #ifdef DEBUG
+    wind_speed = getData().windSpeed;
+    p.Plot();
+    #endif
 
-  if(now - last_seen > SCREEN_UPDATE_MSEC){
+    now = millis();
+    if(now - last_screen_refresh >= TIME_SCREEN_UPDATE){
       if(check<EPAPER_DEBUG>()){
           getEpaper().display_data(getData(), draw_print);
       }
-      last_seen = now;
-  }
-
-  portDISABLE_INTERRUPTS();
-  now = millis();
-  portENABLE_INTERRUPTS();
-
-  if(now - last_msg < CICLE_MSEC){
-    delay(CICLE_MSEC - (now - last_msg));
-  }
+      last_screen_refresh = now;
+    }
 }

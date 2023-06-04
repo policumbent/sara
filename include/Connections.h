@@ -14,6 +14,6 @@ void printWifiInfo();
 void setupMQTT();
 void publishMQTT(Data &data);
 void publish(const char* topic, const char *payload);
-void connect();
+void connect(bool keep_trying = true);
 
 void callback(const char *topic, byte *message, unsigned int length);

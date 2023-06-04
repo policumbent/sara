@@ -31,24 +31,20 @@ void SDHandler::flush() {
 }
 
 
-void SDHandler::write_sd(Data &data, const char *mode) {
+void SDHandler::write_sd(String txt,  const char *mode) {
+
+    // The SD card is a device that must be mounted AND UNMOUNTED at every writing stage!
+    // every other behaviour may damage the SD card and should be avoided
+    prepare();
 
     // printing on file
-    this->data_log = SD.open(data.log_file, mode);
+    this->data_log = SD.open(filename, mode);
 
-    // and write just once on the file --> this should
-    // reduce errors
-
-    sprintf(this->buffer, "%02d/%02d/%02d %02d:%02d:%02d, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f",
-            data.timestamp.year(),data.timestamp.month(), data.timestamp.day(),
-            data.timestamp.hour(), data.timestamp.minute(), data.timestamp.second(),
-
-            data.temperature, data.humidity, data.pressure, data.wind_speed, data.wind_direction,
-            data.longitude, data.latitude, data.altitude);
-
-    this->data_log.println(this->buffer);
+    this->data_log.print(txt);
 
     this->data_log.close();
+
+    deselect();
 }
 
 void SDHandler::read_sd(Data &data, String &txt) {
@@ -61,7 +57,28 @@ void SDHandler::read_sd(Data &data, String &txt) {
     this->data_log.close();
 }
 
-void SDHandler::setup_sd(Data &data, int cs) {
+bool SDHandler::prepare(){
+
+    bool initialized = false;
+    int count = 5;
+    while(!initialized && count > 0) {
+        if(!(initialized = SD.begin(cs, SPI, 3000000))){
+            Serial.println("Impossible to connect SD reader");
+        }else{
+            Serial.println("SD connected");
+        }
+        delay(200);
+    }
+
+    return initialized;
+}
+
+void SDHandler::deselect(){
+    SD.end();
+}
+
+
+void SDHandler::setup_sd(Data &data, int chip_s) {
 
     uint8_t card_type;
 
@@ -69,9 +86,13 @@ void SDHandler::setup_sd(Data &data, int cs) {
     //SPI.setDataMode(SPI_MODE1); // the magnetic encoder communicates with SPI1: CPOL=0 CPHA=1 so we force also the SD card
     //SPI.setBitOrder(MSBFIRST); // the magnetic encoder communicates in MSBFIRST
 
-    while(!SD.begin(cs, SPI, 3000000)) {
-        Serial.println("Impossible to connect SD reader");
-        delay(200);
+
+    cs = chip_s;
+
+    // The SD card is a device that must be mounted AND UNMOUNTED at every writing stage!
+    // every other behaviour may damage the SD card and should be avoided
+    if(!prepare()){
+        loop_infinite();
     }
 
     card_type = SD.cardType();
@@ -79,6 +100,8 @@ void SDHandler::setup_sd(Data &data, int cs) {
     if (card_type == CARD_NONE) {
         Serial.println("No SD card attached");
         loop_infinite();
+    }else{
+        Serial.println("The card is of type: " + String(card_type));
     }
 
     Serial.println("CORRECTLY INITIALIZED: SD CARD");
@@ -88,8 +111,10 @@ void SDHandler::setup_sd(Data &data, int cs) {
         loop_infinite();
     }
 
+    filename = data.log_file;
+
     // the insertion of the header is done here in order not to access the RTC at setup time
-    this->data_log = SD.open(data.log_file, FILE_WRITE, true);
+    this->data_log = SD.open(filename, FILE_WRITE, true);
 
     if (!this->data_log) {
         Serial.print("Error opening the file: ");
@@ -101,5 +126,7 @@ void SDHandler::setup_sd(Data &data, int cs) {
     this->data_log.print("timeStamp, Temperature(°C), Pressure(hPa), Humidity(%), Wind_Speed(m/s), "
                          "Wind_Direction(deg), Longitude(deg), Latitude(deg), Altitude(m)\n");
     this->data_log.close();
+
+    deselect();
 
 }
