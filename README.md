@@ -5,7 +5,9 @@ Stazione per l'Analisi di Raffiche Avverse
 <br>
 <br>
 
-[//]: # (TODO: aggiungere contributori)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 </h3>
 
@@ -64,3 +66,30 @@ Stazione per l'Analisi di Raffiche Avverse
 8) Turn ON the switch
 9) The LED on the ESP32 controller will start blinking when it is connected, if not reset the system and retry
 
+### How it works
+
+#### Publishing to server
+The Weather Station publishes data on a remote MQTT server. Listening to the same server is a process
+running on the Team VPS hosted at (*server.policumbent.it*) that collects data from the server and saves it locally.
+The process should also redirect the incoming data to the Alice clients connected, through the WebSocket protocol.
+
+#### Connection to the app
+The data sent to the Mqtt server can also be visualized through any mqtt visualizer and it is also
+the app designed specifically for this purpose
+
+#### Backup SD
+The data is not directly saved on the SD card at every cycle, but it is buffered in the SPIFFS memory 
+and then copied on the SD every 10s. This guarantees protection over unwanted interruptions.
+
+
+## Contributors ✨
+
+Thanks goes to these wonderful people
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdowns-disable -->
+<table>
+
+<td align="center"><a href="https://github.com/AlbertoEusebio"><img src="https://avatars.githubusercontent.com/u/72319445?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alberto Eusebio</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=AlbertoEusebio" title="Code"></a></td>
+<td align="center"><a href="https://github.com/CornagliaRiccardo"><img src="https://avatars.githubusercontent.com/u/81438517?v=4?s=100" width="100px;" alt=""/><br /><sub><b>CornagliaRiccardo</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=CornagliaRiccardo" title="Code"></a></td>
+</table>

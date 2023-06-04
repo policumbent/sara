@@ -298,11 +298,14 @@ void loop() {
 
     // we log into the SPIFFS buffer file frequently, but we backup to SD less frequently
     if(now - last_spiff_stage >= TIME_SPIFFS_LOG) {
-      if (check<SPIFFS_DEBUG>()) {
+        // condition met both when SD buffering is active or SPIFFS log
+      if (check<SPIFFS_DEBUG>() || check<SD_DEBUG>()) {
           getFlashHandler(true).write_flash(getData());
       }
       last_spiff_stage = now;
     }
+
+    // Backup into SD
     now = millis();
     if(now - last_log >= TIME_SD_BACKUP) {
 
@@ -315,10 +318,7 @@ void loop() {
           String txt;
           getFlashHandler(true).read_flash(getData(), txt);
           getSdHandler().write_sd(txt);
-      } else if (check<SPIFFS_DEBUG>()) {
-          getFlashHandler().write_flash(getData());
       }
-
       digitalWrite(cs_sd, HIGH);
       digitalWrite(cs_mag, HIGH);
 

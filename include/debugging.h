@@ -2,7 +2,7 @@
 
 const bool WIFI_DEBUG         = true;
 const bool SD_DEBUG           = true;
-const bool SPIFFS_DEBUG       = false; // can not be true if SD is true
+const bool SPIFFS_DEBUG       = true;
 const bool MAGNETOMETER_DEBUG = true;
 const bool BME_DEBUG          = true;
 const bool NTP_DEBUG          = true;
