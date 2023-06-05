@@ -33,18 +33,17 @@ void FlashHandler::write_flash(Data &data, const char *mode) {
 
 void FlashHandler::read_flash(Data &data, String &txt) {
     if(!staging_mode) {
-        this->data_log = SPIFFS.open(data.log_file, FILE_READ);
+        this->data_log = SPIFFS.open(staging_filename, FILE_READ);
     }else{
-        this->data_log = SPIFFS.open("staging.csv", FILE_READ);
+        this->data_log = SPIFFS.open(data.log_file, FILE_READ);
     }
     while(this->data_log.available()){
-        txt += this->data_log.readStringUntil('\n');
+        txt += this->data_log.readString();
     }
     this->data_log.close();
 
     // when I read the file I want the contnent to be reset so I delete it
     if(staging_mode){
-        SPIFFS.remove("logging.csv");
         this->data_log = SPIFFS.open(data.log_file, FILE_WRITE, true);
         this->data_log.close();
     }
@@ -93,7 +92,7 @@ void FlashHandler::setup_spiffs(Data &data) {
     if(!staging_mode) {
         this->data_log = SPIFFS.open(data.log_file.c_str(), FILE_WRITE, true);
     }else{
-        this->data_log = SPIFFS.open("staging.csv", FILE_WRITE, true);
+        this->data_log = SPIFFS.open(staging_filename, FILE_WRITE, true);
     }
     if (!this->data_log) {
         Serial.print("Error opening the file: ");

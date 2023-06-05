@@ -45,15 +45,15 @@ String Data::to_text() {
     String buffer = "";
 
     buffer = timestamp.timestamp() + "\n"
-            + "Temperature: " + String(temperature) + " °C\n";
-            + "Humidity: " + String(humidity) + " %\n";
-            + "Pressure: " + String(pressure) + " hPa\n";
-            + "Wind Speed: " + String(wind_speed) + " m/s\n";
-            + "Wind Direction: " + String(wind_direction) + " °\n";
-            + "Latitude: " + String(latitude) + "\n";
-            + "longitude: " + String(longitude) + "\n";
-            + "Altitude: " + String(longitude) + "\n";
-            + "Pointing degrees" + String(pointingDegrees)+"\n";
+            + "Temperature: " + String(temperature) + " C\n"
+            + "Humidity: " + String(humidity) + " %\n"
+            + "Pressure: " + String(pressure) + " hPa\n"
+            + "Wind Speed: " + String(wind_speed) + " m/s\n"
+            + "Wind Direction: " + String(wind_direction) + " deg\n"
+            + "Latitude: " + String(latitude) + "\n"
+            + "longitude: " + String(longitude) + "\n"
+            + "Altitude: " + String(longitude) + "\n"
+            + "Pointing degrees: " + String(pointingDegrees)+"\n";
 
     return buffer;
 }

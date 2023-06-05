@@ -52,7 +52,13 @@ void publish(const char* topic, const char * payload){
 }
 
 void connect(bool keep_trying){
-    client_connect((const char *) "ESP-WROOM-32", cred.mqtt_usr.c_str(), cred.mqtt_pass.c_str(), client, keep_trying);
+    bool net = true;
+    if(!WiFi.isConnected()){
+        net = WiFi.reconnect();
+    }
+    if(net) {
+        client_connect((const char *) "ESP-WROOM-32", cred.mqtt_usr.c_str(), cred.mqtt_pass.c_str(), client, keep_trying);
+    }
 }
 
 

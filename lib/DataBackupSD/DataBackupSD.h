@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <FS.h>
 #include <SD.h>
 #include "utils.h"
 # include "Data.h"
@@ -12,7 +13,7 @@ private:
     int cs;
 public:
     explicit SDHandler(Data &, int cs);
-    void write_sd(String txt, const char * mode = FILE_APPEND);
+    void write_sd(String &txt, const char * mode = FILE_APPEND);
     void read_sd(Data &, String &);
     void flush();
 private:

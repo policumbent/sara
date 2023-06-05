@@ -8,6 +8,7 @@
 class FlashHandler{
 private:
     File data_log;
+    String staging_filename = "/staging.csv";
     bool staging_mode;
     bool log_set;
     char buffer[256];

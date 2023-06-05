@@ -229,8 +229,8 @@ void setup() {
     }
 
     // some problems with the SD card lead to this solution, TODO: find better solution
-    //digitalWrite(cs_sd, HIGH);
-    //digitalWrite(cs_mag, HIGH);
+    digitalWrite(cs_sd, HIGH);
+    digitalWrite(cs_mag, HIGH);
 
     delay(10);
 
@@ -281,11 +281,11 @@ void loop() {
     if (check<MAGNETOMETER_DEBUG>()){
         digitalWrite(cs_sd, HIGH);
         digitalWrite(cs_mag, LOW);
-
+        delay(10);
         getAngleSensor().get_data(getData());
-
         digitalWrite(cs_sd, HIGH);
         digitalWrite(cs_mag, HIGH);
+
     }
 
     if(check<WIFI_DEBUG>()) {
@@ -297,11 +297,20 @@ void loop() {
     }
 
     // we log into the SPIFFS buffer file frequently, but we backup to SD less frequently
-    if(now - last_spiff_stage >= TIME_SPIFFS_LOG) {
+    if(now - last_spiff_stage > TIME_SPIFFS_LOG) {
         // condition met both when SD buffering is active or SPIFFS log
+        digitalWrite(cs_sd, LOW);
+        digitalWrite(cs_mag, HIGH);
+
+        delay(10);
       if (check<SPIFFS_DEBUG>() || check<SD_DEBUG>()) {
           getFlashHandler(true).write_flash(getData());
       }
+
+        digitalWrite(cs_sd, HIGH);
+        digitalWrite(cs_mag, HIGH);
+
+        delay(10);
       last_spiff_stage = now;
     }
 
@@ -309,19 +318,12 @@ void loop() {
     now = millis();
     if(now - last_log >= TIME_SD_BACKUP) {
 
-      digitalWrite(cs_sd, LOW);
-      digitalWrite(cs_mag, HIGH);
-
-      delay(10);
-
       if (check<SD_DEBUG>()) {
           String txt;
           getFlashHandler(true).read_flash(getData(), txt);
+          Serial.print(txt);
           getSdHandler().write_sd(txt);
       }
-      digitalWrite(cs_sd, HIGH);
-      digitalWrite(cs_mag, HIGH);
-
       last_log = now;
     }
 
@@ -331,7 +333,7 @@ void loop() {
             publishMQTT(getData());
         }
 
-        Serial.print(getData().to_text());
+        //Serial.print(getData().to_text());
 
         last_publish = now;
     }

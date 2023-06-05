@@ -31,7 +31,7 @@ void SDHandler::flush() {
 }
 
 
-void SDHandler::write_sd(String txt,  const char *mode) {
+void SDHandler::write_sd(String &txt,  const char *mode) {
 
     // The SD card is a device that must be mounted AND UNMOUNTED at every writing stage!
     // every other behaviour may damage the SD card and should be avoided
@@ -59,18 +59,18 @@ void SDHandler::read_sd(Data &data, String &txt) {
 
 bool SDHandler::prepare(){
 
-    bool initialized = false;
-    int count = 5;
-    while(!initialized && count > 0) {
-        if(!(initialized = SD.begin(cs, SPI, 3000000))){
+    for(int count = 0;count < 5; count++) {
+        if(!SD.begin(cs, SPI, 4000000,"/sd", 1, false)){
             Serial.println("Impossible to connect SD reader");
         }else{
             Serial.println("SD connected");
+            return true;
         }
+        count--;
         delay(200);
     }
 
-    return initialized;
+    return false;
 }
 
 void SDHandler::deselect(){
@@ -113,6 +113,7 @@ void SDHandler::setup_sd(Data &data, int chip_s) {
 
     filename = data.log_file;
 
+    Serial.println("Opening file " + filename);
     // the insertion of the header is done here in order not to access the RTC at setup time
     this->data_log = SD.open(filename, FILE_WRITE, true);
 
@@ -123,10 +124,9 @@ void SDHandler::setup_sd(Data &data, int chip_s) {
         loop_infinite();
     }
 
-    this->data_log.print("timeStamp, Temperature(°C), Pressure(hPa), Humidity(%), Wind_Speed(m/s), "
-                         "Wind_Direction(deg), Longitude(deg), Latitude(deg), Altitude(m)\n");
+    this->data_log.println("timeStamp, Temperature(C), Pressure(hPa), Humidity(%), Wind_Speed(m/s), "
+                         "Wind_Direction(deg), Longitude(deg), Latitude(deg), Altitude(m)");
     this->data_log.close();
 
     deselect();
-
 }
