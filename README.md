@@ -6,7 +6,7 @@ Stazione per l'Analisi di Raffiche Avverse
 <br>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 </h3>
@@ -91,5 +91,6 @@ Thanks goes to these wonderful people
 <table>
 
 <td align="center"><a href="https://github.com/AlbertoEusebio"><img src="https://avatars.githubusercontent.com/u/72319445?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alberto Eusebio</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=AlbertoEusebio" title="Code"></a></td>
+<td align="center"><a href="https://github.com/orgs/policumbent/people/SimoneSampognaro"><img src="https://avatars.githubusercontent.com/u/81438351?v=4" width="100px;" alt=""/><br /><sub><b>Alberto Eusebio</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=AlbertoEusebio" title="Code"></a></td>
 <td align="center"><a href="https://github.com/CornagliaRiccardo"><img src="https://avatars.githubusercontent.com/u/81438517?v=4?s=100" width="100px;" alt=""/><br /><sub><b>CornagliaRiccardo</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=CornagliaRiccardo" title="Code"></a></td>
 </table>
