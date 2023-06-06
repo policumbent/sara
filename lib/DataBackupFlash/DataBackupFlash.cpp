@@ -23,7 +23,7 @@ void FlashHandler::write_flash(Data &data, const char *mode) {
             data.timestamp.year(),data.timestamp.month(), data.timestamp.day(),
             data.timestamp.hour(), data.timestamp.minute(), data.timestamp.second(),
 
-            data.temperature, data.humidity, data.pressure, data.wind_speed, data.wind_direction,
+            data.temperature, data.pressure, data.humidity, data.wind_speed, data.wind_direction,
             data.longitude, data.latitude, data.altitude);
 
     this->data_log.println(this->buffer);
