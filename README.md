@@ -91,6 +91,6 @@ Thanks goes to these wonderful people
 <table>
 
 <td align="center"><a href="https://github.com/AlbertoEusebio"><img src="https://avatars.githubusercontent.com/u/72319445?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alberto Eusebio</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=AlbertoEusebio" title="Code"></a></td>
-<td align="center"><a href="https://github.com/orgs/policumbent/people/SimoneSampognaro"><img src="https://avatars.githubusercontent.com/u/81438351?v=4" width="100px;" alt=""/><br /><sub><b>Alberto Eusebio</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=AlbertoEusebio" title="Code"></a></td>
-<td align="center"><a href="https://github.com/CornagliaRiccardo"><img src="https://avatars.githubusercontent.com/u/81438517?v=4?s=100" width="100px;" alt=""/><br /><sub><b>CornagliaRiccardo</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=CornagliaRiccardo" title="Code"></a></td>
+<td align="center"><a href="https://github.com/orgs/policumbent/people/SimoneSampognaro"><img src="https://avatars.githubusercontent.com/u/81438351?v=4" width="100px;" alt=""/><br /><sub><b>Simone Sampognaro</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=SimoneSampognaro" title="Code"></a></td>
+<td align="center"><a href="https://github.com/CornagliaRiccardo"><img src="https://avatars.githubusercontent.com/u/81438517?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Cornaglia Riccardo</b></sub></a><br /><a href="https://github.com/policumbent/bob/commits?author=CornagliaRiccardo" title="Code"></a></td>
 </table>
